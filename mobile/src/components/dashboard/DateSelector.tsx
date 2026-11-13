@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Modal, Pressable, Text, View, type TextStyle, type ViewStyle } from 'react-native';
 
 import { NutriColors } from '@/constants/nutri';
-import { DEFAULT_DATE } from '@/data/dashboardMockData';
 import { useAppFrame } from '@/hooks/use-app-frame';
 
 import { CalendarIcon, ChevronRightIcon } from './icons';
@@ -21,9 +20,9 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
-function formatLabel(date: Date) {
-  if (isSameDay(date, DEFAULT_DATE)) {
-    return 'Today, Apr 26';
+function formatLabel(date: Date, today: Date) {
+  if (isSameDay(date, today)) {
+    return `Today, ${MONTH_NAMES[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
   }
   return `${WEEKDAY_SHORT[date.getDay()]}, ${MONTH_NAMES[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
 }
@@ -36,6 +35,7 @@ type DateSelectorProps = {
 export function DateSelector({ date, onChange }: DateSelectorProps) {
   const { scale } = useAppFrame();
   const [pickerVisible, setPickerVisible] = useState(false);
+  const today = useMemo(() => new Date(), []);
 
   return (
     <>
@@ -43,12 +43,13 @@ export function DateSelector({ date, onChange }: DateSelectorProps) {
         onPress={() => setPickerVisible(true)}
         style={({ pressed }) => [selector(scale), pressed && styles.pressed]}>
         <CalendarIcon size={22 * scale} />
-        <Text style={label(scale)}>{formatLabel(date)}</Text>
+        <Text style={label(scale)}>{formatLabel(date, today)}</Text>
         <ChevronRightIcon size={18 * scale} color="#C9D2E4" />
       </Pressable>
       <DatePickerModal
         visible={pickerVisible}
         selected={date}
+        today={today}
         onSelect={(next) => {
           setPickerVisible(false);
           onChange(next);
@@ -62,11 +63,12 @@ export function DateSelector({ date, onChange }: DateSelectorProps) {
 type DatePickerModalProps = {
   visible: boolean;
   selected: Date;
+  today: Date;
   onSelect: (date: Date) => void;
   onDismiss: () => void;
 };
 
-function DatePickerModal({ visible, selected, onSelect, onDismiss }: DatePickerModalProps) {
+function DatePickerModal({ visible, selected, today, onSelect, onDismiss }: DatePickerModalProps) {
   const { scale } = useAppFrame();
   const [viewYear, setViewYear] = useState(selected.getFullYear());
   const [viewMonth, setViewMonth] = useState(selected.getMonth());
@@ -115,7 +117,7 @@ function DatePickerModal({ visible, selected, onSelect, onDismiss }: DatePickerM
               }
               const cellDate = new Date(viewYear, viewMonth, day);
               const isSelected = isSameDay(cellDate, selected);
-              const isDefault = isSameDay(cellDate, DEFAULT_DATE);
+              const isDefault = isSameDay(cellDate, today);
               return (
                 <Pressable
                   key={`day-${day}`}

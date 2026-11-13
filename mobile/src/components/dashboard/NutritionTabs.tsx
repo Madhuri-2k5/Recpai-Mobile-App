@@ -2,8 +2,15 @@ import { Pressable, Text, View, type TextStyle, type ViewStyle } from 'react-nat
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { NutriColors } from '@/constants/nutri';
-import { nutritionStats, nutrientOrder, type NutrientKey } from '@/data/dashboardMockData';
+import { nutrientOrder, type NutrientKey } from '@/data/dashboardMockData';
 import { useAppFrame } from '@/hooks/use-app-frame';
+
+const TAB_LABELS: Record<NutrientKey, string> = {
+  calories: 'Calories',
+  protein: 'Protein',
+  carbs: 'Carbs',
+  fats: 'Fats',
+};
 
 type NutritionTabsProps = {
   active: NutrientKey;
@@ -32,11 +39,11 @@ export function NutritionTabs({ active, onChange }: NutritionTabsProps) {
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={tabFill(scale, true)}>
-                <Text style={textSelected(scale)}>{nutritionStats[key].label}</Text>
+                <Text style={textSelected(scale)}>{TAB_LABELS[key]}</Text>
               </LinearGradient>
             ) : (
               <View style={tabFill(scale, false)}>
-                <Text style={text(scale)}>{nutritionStats[key].label}</Text>
+                <Text style={text(scale)}>{TAB_LABELS[key]}</Text>
               </View>
             )}
           </Pressable>

@@ -86,13 +86,13 @@ export function WeeklyBarChart({ series, width, height, scale }: WeeklyBarChartP
         const x = yAxisWidth + slot * index + slot / 2;
         return (
           <SvgText
-            key={`day-${WEEK_DAYS[index]}`}
+            key={`day-${index}`}
             x={x}
             y={topPad + plotHeight + 15 * scale}
             fontSize={10 * scale}
             fill={NutriColors.textFaint}
             textAnchor="middle">
-            {WEEK_DAYS[index]}
+            {series.labels?.[index] ?? WEEK_DAYS[index]}
           </SvgText>
         );
       })}

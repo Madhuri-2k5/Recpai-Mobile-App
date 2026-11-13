@@ -2,17 +2,17 @@ import { Fragment } from 'react';
 import { Text, View, type TextStyle, type ViewStyle } from 'react-native';
 
 import { NutriColors } from '@/constants/nutri';
-import { macroKeys, nutritionStats } from '@/data/dashboardMockData';
+import { macroKeys, type NutrientStat } from '@/data/dashboardMockData';
 import { useAppFrame } from '@/hooks/use-app-frame';
 
 import { ProgressRing } from './ProgressRing';
 
-export function MacroSummary() {
+export function MacroSummary({ stats }: { stats: Record<string, NutrientStat> }) {
   const { scale } = useAppFrame();
   return (
     <View style={row(scale)}>
       {macroKeys.map((key, index) => {
-        const stat = nutritionStats[key];
+        const stat = stats[key];
         const progress = stat.consumed / stat.target;
         const percent = Math.round(progress * 100);
         return (

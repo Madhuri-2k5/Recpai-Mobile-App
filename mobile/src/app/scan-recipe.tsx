@@ -1,9 +1,6 @@
-import { useState, type ReactNode } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { Image } from 'expo-image';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-
+import { useCallback, useState, type ReactNode } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -12,6 +9,9 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Image } from 'expo-image';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
@@ -29,39 +29,133 @@ import {
   SparkleIcon,
   UtensilsIcon,
 } from '@/components/icons';
-import { recipes, scaleQuantity, type Recipe } from '@/data/recipesMockData';
+import { api, ApiError, type Recipe } from '@/lib/api';
+import { resetScanFlow, scanFlow } from '@/lib/scan-flow';
+
+type Phase = 'generating' | 'ready' | 'error';
 
 export default function ScanRecipeScreen() {
   const { scale } = useAppFrame();
   const router = useRouter();
   const params = useLocalSearchParams<{ cuisine?: string; servings?: string }>();
-  const [saved, setSaved] = useState(false);
 
-  const recipe: Recipe = recipes[0];
   const cuisine = params.cuisine || 'Continental';
   const servings = Math.max(1, Math.min(12, Number(params.servings ?? 2) || 2));
 
-  const multiplier = servings / recipe.servings;
+  const [phase, setPhase] = useState<Phase>(scanFlow.recipe ? 'ready' : 'generating');
+  const [recipe, setRecipe] = useState<Recipe | null>(scanFlow.recipe);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const totals = {
-    kcal: Math.round(recipe.kcal * multiplier),
-    protein: Math.round(recipe.protein * multiplier),
-    carbs: Math.round(recipe.carbs * multiplier),
-    fat: Math.round(recipe.fat * multiplier),
-  };
+  useFocusEffect(
+    useCallback(() => {
+      if (scanFlow.recipe) {
+        setRecipe(scanFlow.recipe);
+        setPhase('ready');
+        return;
+      }
+      let active = true;
+      setPhase('generating');
+      api
+        .generateRecipe({
+          imageBase64: scanFlow.imageBase64 ?? undefined,
+          cuisine,
+          servings,
+        })
+        .then((payload) => {
+          if (!active) return;
+          scanFlow.recipe = payload.recipe;
+          setRecipe(payload.recipe);
+          setPhase('ready');
+        })
+        .catch((error) => {
+          if (!active) return;
+          setErrorMessage(error instanceof ApiError ? error.message : 'Recipe generation failed. Try again.');
+          setPhase('error');
+        });
+      return () => {
+        active = false;
+      };
+    }, [cuisine, servings])
+  );
+
+  async function addToMyMeals() {
+    if (!recipe || saving || saved) return;
+    setSaving(true);
+    try {
+      const savedPayload = await api.saveRecipe(recipe);
+      const recipeId = savedPayload.recipe?._id || savedPayload.recipe?.id;
+      if (recipeId) {
+        await api.logMeal(recipeId, servings);
+      }
+      setSaved(true);
+    } catch {
+      setSaved(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function closeFlow() {
+    resetScanFlow();
+    router.dismissTo('/scan');
+  }
+
+  if (phase === 'generating') {
+    return (
+      <View style={styles.centerRoot}>
+        <StatusBar style="light" />
+        <View style={generatingCard(scale)}>
+          <SparkleIcon size={44 * scale} color={NutriColors.purple} />
+          <Text style={generatingTitle(scale)}>Creating your recipe…</Text>
+          <Text style={generatingBody(scale)}>
+            NutriAI is analyzing your ingredients and building a {cuisine} recipe for {servings}{' '}
+            {servings === 1 ? 'person' : 'people'}. This takes a few seconds.
+          </Text>
+          <ActivityIndicator color={NutriColors.purple} style={{ marginTop: 18 * scale }} />
+        </View>
+      </View>
+    );
+  }
+
+  if (phase === 'error' || !recipe) {
+    return (
+      <View style={styles.centerRoot}>
+        <StatusBar style="light" />
+        <View style={generatingCard(scale)}>
+          <Text style={generatingTitle(scale)}>Scan failed</Text>
+          <Text style={generatingBody(scale)}>{errorMessage}</Text>
+          <Pressable onPress={() => router.back()} style={retryButton(scale)}>
+            <Text style={retryText(scale)}>Go back</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 * scale }}>
         <View style={heroWrap(scale)}>
-          <Image source={recipe.image} style={heroImage(scale)} contentFit="cover" />
-          <View style={heroOverlay(scale)} pointerEvents="none">
+          <Image
+            source={
+              recipe.imageUrl
+                ? { uri: recipe.imageUrl }
+                : scanFlow.imageUri
+                  ? { uri: scanFlow.imageUri }
+                  : undefined
+            }
+            style={heroImage(scale)}
+            contentFit="cover"
+          />
+          <View style={heroOverlay(scale)} pointerEvents="box-none">
             <Pressable onPress={() => router.back()} style={circleButton(scale)}>
               <ArrowLeftIcon size={22 * scale} />
             </Pressable>
             <Text style={heroTitle(scale)}>Scan Result</Text>
-            <Pressable onPress={() => router.dismissTo('/scan')} style={circleButton(scale)}>
+            <Pressable onPress={closeFlow} style={circleButton(scale)}>
               <CloseIcon size={22 * scale} />
             </Pressable>
           </View>
@@ -75,51 +169,53 @@ export default function ScanRecipeScreen() {
             </View>
             <View style={aiChip(scale)}>
               <SparkleIcon size={14 * scale} color={NutriColors.purple} />
-              <Text style={aiChipText(scale)}>Confidence: {recipe.confidence}%</Text>
+              <Text style={aiChipText(scale)}>
+                Confidence: {Math.round((recipe.scanConfidence ?? 0) * 100)}%
+              </Text>
             </View>
           </View>
 
-          <Text style={name(scale)}>{recipe.name}</Text>
+          <Text style={name(scale)}>{recipe.title}</Text>
 
           <View style={metaRow(scale)}>
             <View style={metaItem(scale)}>
               <ClockIcon size={17 * scale} color={NutriColors.textDim} />
-              <Text style={metaText(scale)}>{recipe.timeMinutes} min</Text>
+              <Text style={metaText(scale)}>{recipe.prepTimeMinutes} min</Text>
             </View>
             <View style={metaDot} />
             <View style={metaItem(scale)}>
               <UtensilsIcon size={16 * scale} color={NutriColors.textDim} />
-              <Text style={metaText(scale)}>{cuisine}</Text>
+              <Text style={metaText(scale)}>{recipe.cuisine}</Text>
             </View>
             <View style={metaDot} />
             <View style={metaItem(scale)}>
               <UtensilsIcon size={16 * scale} color={NutriColors.textDim} />
-              <Text style={metaText(scale)}>Serves {servings}</Text>
+              <Text style={metaText(scale)}>Serves {recipe.servings}</Text>
             </View>
           </View>
 
           <View style={tilesRow(scale)}>
             <MacroTile
               icon={<FlameTileIcon size={22 * scale} />}
-              value={`${totals.kcal}`}
+              value={`${recipe.nutrition.calories}`}
               unit="kcal"
               scale={scale}
             />
             <MacroTile
               icon={<ProteinIcon size={22 * scale} />}
-              value={`${totals.protein}g`}
+              value={`${recipe.nutrition.protein}g`}
               unit="protein"
               scale={scale}
             />
             <MacroTile
               icon={<CarbsIcon size={22 * scale} />}
-              value={`${totals.carbs}g`}
+              value={`${recipe.nutrition.carbs}g`}
               unit="carbs"
               scale={scale}
             />
             <MacroTile
               icon={<FatIcon size={22 * scale} />}
-              value={`${totals.fat}g`}
+              value={`${recipe.nutrition.fat}g`}
               unit="fat"
               scale={scale}
             />
@@ -128,38 +224,36 @@ export default function ScanRecipeScreen() {
           <Text style={sectionTitle(scale)}>Estimated Time</Text>
           <View style={timeCard(scale)}>
             <ClockIcon size={24 * scale} color={NutriColors.purple} />
-            <Text style={timeValue(scale)}>{recipe.timeMinutes} minutes</Text>
+            <Text style={timeValue(scale)}>{recipe.prepTimeMinutes} minutes</Text>
             <Text style={timeCaption(scale)}>from prep to plate</Text>
           </View>
 
-          <Text style={sectionTitle(scale)}>Groceries</Text>
-          <View style={listCard(scale)}>
-            {recipe.groceries.map((item, index) => (
-              <View key={item.name} style={groceryRow(scale, index === recipe.groceries.length - 1)}>
-                <View style={groceryBullet(scale)} />
-                <Text style={groceryName(scale)}>{item.name}</Text>
-                <Text style={groceryQty(scale)}>
-                  {scaleQuantity(item.quantity, item.unit, multiplier)}
-                </Text>
+          {recipe.groceries.length > 0 ? (
+            <>
+              <Text style={sectionTitle(scale)}>Groceries</Text>
+              <View style={listCard(scale)}>
+                {recipe.groceries.map((item, index) => (
+                  <View
+                    key={`${item.name}-${index}`}
+                    style={groceryRow(scale, index === recipe.groceries.length - 1)}>
+                    <View style={groceryBullet(scale)} />
+                    <Text style={groceryName(scale)}>{item.name}</Text>
+                    <Text style={groceryQty(scale)}>{item.quantity}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          ) : null}
 
           <Text style={sectionTitle(scale)}>Ingredients</Text>
           <View style={listCard(scale)}>
             {recipe.ingredients.map((ingredient, index) => (
               <View
-                key={ingredient.name}
+                key={`${ingredient.name}-${index}`}
                 style={ingredientRow(scale, index === recipe.ingredients.length - 1)}>
                 <IngredientDotIcon size={26 * scale} />
                 <Text style={ingredientName(scale)}>
-                  {ingredient.name}{' '}
-                  <Text style={ingredientQty(scale)}>
-                    ({scaleQuantity(ingredient.quantity, ingredient.unit, multiplier)})
-                  </Text>
-                </Text>
-                <Text style={ingredientKcal(scale)}>
-                  {Math.round(ingredient.kcal * multiplier)} kcal
+                  {ingredient.name} <Text style={ingredientQty(scale)}>({ingredient.quantity})</Text>
                 </Text>
               </View>
             ))}
@@ -184,7 +278,11 @@ export default function ScanRecipeScreen() {
                 <Text style={savedBadgeText(scale)}>Added to My Meals</Text>
               </View>
             ) : (
-              <GradientButton label="Add to My Meals" onPress={() => setSaved(true)} />
+              <GradientButton
+                label={saving ? 'Adding…' : 'Add to My Meals'}
+                onPress={addToMyMeals}
+                disabled={saving}
+              />
             )}
           </View>
         </View>
@@ -218,7 +316,55 @@ const styles = {
     flex: 1,
     backgroundColor: NutriColors.bg,
   } as ViewStyle,
+  centerRoot: {
+    flex: 1,
+    backgroundColor: NutriColors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 34,
+  } as ViewStyle,
 };
+
+const generatingCard = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  padding: 26 * scale,
+  borderRadius: 22 * scale,
+  backgroundColor: NutriColors.card,
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+  alignSelf: 'stretch',
+});
+
+const generatingTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 21 * scale,
+  fontWeight: '700',
+  marginTop: 14 * scale,
+});
+
+const generatingBody = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 14 * scale,
+  lineHeight: 21 * scale,
+  textAlign: 'center',
+  marginTop: 8 * scale,
+});
+
+const retryButton = (scale: number): ViewStyle => ({
+  marginTop: 20 * scale,
+  paddingHorizontal: 30 * scale,
+  paddingVertical: 13 * scale,
+  borderRadius: 15 * scale,
+  backgroundColor: 'rgba(183, 79, 245, 0.16)',
+  borderWidth: 1,
+  borderColor: 'rgba(183, 79, 245, 0.5)',
+});
+
+const retryText = (scale: number): TextStyle => ({
+  color: '#D9A8FF',
+  fontSize: 15 * scale,
+  fontWeight: '700',
+});
 
 const heroWrap = (scale: number): ViewStyle => ({
   alignSelf: 'stretch',
@@ -227,6 +373,7 @@ const heroWrap = (scale: number): ViewStyle => ({
 const heroImage = (scale: number): ImageStyle => ({
   width: '100%',
   height: 300 * scale,
+  backgroundColor: NutriColors.card,
 });
 
 const heroOverlay = (scale: number): ViewStyle => ({
@@ -304,6 +451,7 @@ const metaRow = (scale: number): ViewStyle => ({
   alignItems: 'center',
   gap: 10 * scale,
   marginTop: 12 * scale,
+  flexWrap: 'wrap',
 });
 
 const metaItem = (scale: number): ViewStyle => ({
@@ -443,12 +591,6 @@ const ingredientQty = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
   fontSize: 14 * scale,
   fontWeight: '400',
-});
-
-const ingredientKcal = (scale: number): TextStyle => ({
-  color: NutriColors.textDim,
-  fontSize: 13.5 * scale,
-  fontWeight: '600',
 });
 
 const stepRow = (scale: number, last: boolean): ViewStyle => ({

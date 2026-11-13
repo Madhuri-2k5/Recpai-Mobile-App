@@ -1,19 +1,9 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type ImageStyle,
-  type TextStyle,
-  type ViewStyle,
-} from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
@@ -26,9 +16,8 @@ import {
   SparkleIcon,
   UtensilsIcon,
 } from '@/components/icons';
-import { recipes } from '@/data/recipesMockData';
-
-const detectedRecipe = recipes[0];
+import { api, type Assessment } from '@/lib/api';
+import { scanFlow } from '@/lib/scan-flow';
 
 const CUISINES = [
   'Indian',
@@ -46,6 +35,40 @@ export default function ScanOptionsScreen() {
   const router = useRouter();
   const [cuisine, setCuisine] = useState<string | null>(null);
   const [servings, setServings] = useState(2);
+  const [assessing, setAssessing] = useState(false);
+  const [assessment, setAssessment] = useState<Assessment | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      if (scanFlow.imageBase64 && !assessment) {
+        setAssessing(true);
+        api
+          .detect(scanFlow.imageBase64)
+          .then((payload) => {
+            if (!active) return;
+            setAssessment(payload.assessment);
+            scanFlow.detectedItems = payload.assessment.detectedItems;
+            scanFlow.detectedReason = payload.assessment.reason;
+            scanFlow.detectedConfidence = payload.assessment.confidence;
+          })
+          .catch(() => {
+            if (active) setAssessment(null);
+          })
+          .finally(() => {
+            if (active) setAssessing(false);
+          });
+      }
+      return () => {
+        active = false;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  );
+
+  const detectedLabel = assessment?.detectedItems?.length
+    ? assessment.detectedItems.slice(0, 4).join(', ')
+    : 'Point your camera at food to detect ingredients';
 
   return (
     <View style={styles.root}>
@@ -60,14 +83,34 @@ export default function ScanOptionsScreen() {
         </View>
 
         <View style={detectedCard(scale)}>
-          <Image source={detectedRecipe.image} style={detectedImage(scale)} contentFit="cover" />
+          {scanFlow.imageUri ? (
+            <Image source={{ uri: scanFlow.imageUri }} style={detectedImage(scale)} contentFit="cover" />
+          ) : (
+            <View style={[detectedImage(scale), detectedPlaceholder(scale)]}>
+              <UtensilsIcon size={30 * scale} color={NutriColors.purple} />
+            </View>
+          )}
           <View style={styles.detectedText}>
             <View style={detectedChip(scale)}>
               <SparkleIcon size={13 * scale} color={NutriColors.teal} />
-              <Text style={detectedChipText(scale)}>AI Detected</Text>
+              <Text style={detectedChipText(scale)}>
+                {assessing ? 'AI Scanning…' : assessment ? 'AI Detected' : 'Manual Mode'}
+              </Text>
             </View>
-            <Text style={detectedName(scale)}>{detectedRecipe.name}</Text>
-            <Text style={detectedConfidence(scale)}>Confidence: {detectedRecipe.confidence}%</Text>
+            {assessing ? (
+              <ActivityIndicator color={NutriColors.purple} style={{ marginTop: 10 * scale }} />
+            ) : (
+              <>
+                <Text style={detectedName(scale)} numberOfLines={2}>
+                  {detectedLabel}
+                </Text>
+                {assessment ? (
+                  <Text style={detectedConfidence(scale)}>
+                    Confidence: {Math.round((assessment.confidence ?? 0) * 100)}%
+                  </Text>
+                ) : null}
+              </>
+            )}
           </View>
         </View>
 
@@ -201,6 +244,14 @@ const detectedImage = (scale: number): ImageStyle => ({
   width: 84 * scale,
   height: 84 * scale,
   borderRadius: 14 * scale,
+});
+
+const detectedPlaceholder = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(183, 79, 245, 0.12)',
+  borderWidth: 1,
+  borderColor: 'rgba(183, 79, 245, 0.4)',
 });
 
 const detectedChip = (scale: number): ViewStyle => ({

@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRightIcon } from '@/components/dashboard/icons';
-
+import { useCallback, useState } from 'react';
 import {
+  Modal,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
-  type ImageStyle,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from 'expo-router';
+import { ChevronRightIcon } from '@/components/dashboard/icons';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
@@ -24,32 +24,92 @@ import {
   FatIcon,
   FlameTileIcon,
   GearIcon,
-  HistoryIcon,
   ProteinIcon,
   TrophyIcon,
+  UsersIcon,
   VerifiedIcon,
 } from '@/components/icons';
-import { user } from '@/data/dashboardMockData';
-import { streakStats } from '@/data/streakMockData';
-
-const GOALS = [
-  { label: 'Daily Calories', value: '2,000 kcal', Icon: FlameTileIcon },
-  { label: 'Protein', value: '100 g', Icon: ProteinIcon },
-  { label: 'Carbs', value: '250 g', Icon: CarbsIcon },
-  { label: 'Fats', value: '67 g', Icon: FatIcon },
-];
+import { api, type Goals, type Subscription, type UserStats } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 const MENU_ROWS = [
-  { label: 'Saved Recipes', value: '24', icon: <BookIcon size={21} color={NutriColors.blue} /> },
-  { label: 'Nutrition History', value: '', icon: <HistoryIcon size={21} color={NutriColors.teal} /> },
-  { label: 'Achievements', value: '', icon: <TrophyIcon size={21} color={NutriColors.amber} /> },
+  { label: 'Saved Recipes', key: 'recipes', icon: <BookIcon size={21} color={NutriColors.blue} /> },
+  { label: 'Groups', key: 'groups', icon: <UsersIcon size={21} color={NutriColors.teal} /> },
+  { label: 'Achievements', key: 'points', icon: <TrophyIcon size={21} color={NutriColors.amber} /> },
 ];
 
 type Plan = 'monthly' | 'yearly';
 
 export default function ProfileScreen() {
   const { scale } = useAppFrame();
+  const { user, signOut } = useAuth();
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [goals, setGoals] = useState<Goals | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plan, setPlan] = useState<Plan>('yearly');
+  const [purchasing, setPurchasing] = useState(false);
+  const [goalsVisible, setGoalsVisible] = useState(false);
+  const [goalDraft, setGoalDraft] = useState({ calories: '', protein: '', carbs: '', fat: '' });
+  const [savingGoals, setSavingGoals] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const payload = await api.stats();
+      setStats(payload.stats);
+      setGoals(payload.goals);
+      setSubscription(payload.subscription);
+    } catch {
+      // keep previous
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  function openGoalsEditor() {
+    if (!goals) return;
+    setGoalDraft({
+      calories: String(goals.calories),
+      protein: String(goals.protein),
+      carbs: String(goals.carbs),
+      fat: String(goals.fat),
+    });
+    setGoalsVisible(true);
+  }
+
+  async function saveGoals() {
+    if (savingGoals) return;
+    setSavingGoals(true);
+    try {
+      const payload = await api.updateGoals({
+        calories: Number(goalDraft.calories) || undefined,
+        protein: Number(goalDraft.protein) || undefined,
+        carbs: Number(goalDraft.carbs) || undefined,
+        fat: Number(goalDraft.fat) || undefined,
+      });
+      setGoals(payload.goals);
+      setGoalsVisible(false);
+    } finally {
+      setSavingGoals(false);
+    }
+  }
+
+  async function purchase() {
+    if (purchasing) return;
+    setPurchasing(true);
+    try {
+      const payload = await api.purchase(plan);
+      setSubscription(payload.subscription);
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
+  const isPremium = subscription?.plan === 'monthly' || subscription?.plan === 'yearly';
+  const firstName = (user?.name ?? 'there').split(' ')[0];
 
   return (
     <View style={styles.root}>
@@ -59,49 +119,56 @@ export default function ProfileScreen() {
           <View style={gearButton(scale)}>
             <GearIcon size={22 * scale} color={NutriColors.textDim} />
           </View>
+          <Pressable onPress={signOut} style={logoutButton(scale)}>
+            <Text style={logoutText(scale)}>Log out</Text>
+          </Pressable>
         </View>
 
         <View style={profileHead}>
           <View>
-            <Image source={user.avatar} style={avatar(scale)} contentFit="cover" />
+            <View style={avatar(scale)}>
+              <Text style={avatarText(scale)}>{(firstName[0] || 'U').toUpperCase()}</Text>
+            </View>
             <View style={verifiedWrap(scale)}>
               <VerifiedIcon size={22 * scale} />
             </View>
           </View>
-          <Text style={name(scale)}>Sarah Johnson</Text>
-          <Text style={handle(scale)}>@sarahj</Text>
+          <Text style={name(scale)}>{user?.name ?? '—'}</Text>
+          <Text style={handle(scale)}>{user?.email ?? ''}</Text>
         </View>
 
         <View style={statsRow(scale)}>
-          <StatCell value={`${streakStats.currentStreak}`} label="Day Streak" scale={scale} />
+          <StatCell value={`${stats?.streak ?? 0}`} label="Day Streak" scale={scale} />
           <StatDivider scale={scale} />
-          <StatCell value="42" label="Recipes" scale={scale} />
+          <StatCell value={`${stats?.recipes ?? 0}`} label="Recipes" scale={scale} />
           <StatDivider scale={scale} />
-          <StatCell value="8.4k" label="Points" scale={scale} />
+          <StatCell value={formatPoints(stats?.points ?? 0)} label="Points" scale={scale} />
         </View>
 
         <View style={sectionHead(scale)}>
           <Text style={sectionTitle(scale)}>Nutrition Goals</Text>
-          <Pressable style={editChip(scale)}>
+          <Pressable style={editChip(scale)} onPress={openGoalsEditor}>
             <Text style={editChipText(scale)}>Edit</Text>
           </Pressable>
         </View>
-        <View style={goalsGrid(scale)}>
-          {GOALS.map((goal) => (
-            <View key={goal.label} style={goalCard(scale)}>
-              <goal.Icon size={22 * scale} />
-              <Text style={goalValue(scale)}>{goal.value}</Text>
-              <Text style={goalLabel(scale)}>{goal.label}</Text>
-            </View>
-          ))}
-        </View>
+        {goals ? (
+          <View style={goalsGrid(scale)}>
+            <GoalCard Icon={FlameTileIcon} value={`${goals.calories.toLocaleString('en-US')} kcal`} label="Daily Calories" scale={scale} />
+            <GoalCard Icon={ProteinIcon} value={`${goals.protein} g`} label="Protein" scale={scale} />
+            <GoalCard Icon={CarbsIcon} value={`${goals.carbs} g`} label="Carbs" scale={scale} />
+            <GoalCard Icon={FatIcon} value={`${goals.fat} g`} label="Fats" scale={scale} />
+          </View>
+        ) : null}
 
         <View style={sectionHead(scale)}>
           <Text style={sectionTitle(scale)}>Subscription</Text>
-          <View style={freeChip(scale)}>
-            <Text style={freeChipText(scale)}>Free plan</Text>
+          <View style={isPremium ? premiumChip(scale) : freeChip(scale)}>
+            <Text style={isPremium ? premiumChipText(scale) : freeChipText(scale)}>
+              {isPremium ? 'Premium' : 'Free plan'}
+            </Text>
           </View>
         </View>
+
         <View style={premiumCard(scale)}>
           <LinearGradient
             colors={['#1A1033', '#241543']}
@@ -116,56 +183,137 @@ export default function ProfileScreen() {
               Unlimited AI scans, personal meal plans and exclusive chef recipes.
             </Text>
 
-            <View style={planRow(scale)}>
-              <PlanCard
-                active={plan === 'monthly'}
-                onPress={() => setPlan('monthly')}
-                name="Monthly"
-                price="$9.99"
-                caption="per month"
-                scale={scale}
-              />
-              <PlanCard
-                active={plan === 'yearly'}
-                onPress={() => setPlan('yearly')}
-                name="Yearly"
-                price="$79.99"
-                caption="save 33%"
-                badge="Best value"
-                scale={scale}
-              />
-            </View>
+            {isPremium ? (
+              <>
+                <Text style={premiumActiveText(scale)}>
+                  Thanks for supporting NutriAI! Your {subscription?.plan} plan renews on{' '}
+                  {subscription?.renewsAt ? new Date(subscription.renewsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}.
+                </Text>
+              </>
+            ) : (
+              <>
+                <View style={planRow(scale)}>
+                  <PlanCard
+                    active={plan === 'monthly'}
+                    onPress={() => setPlan('monthly')}
+                    name="Monthly"
+                    price="$9.99"
+                    caption="per month"
+                    scale={scale}
+                  />
+                  <PlanCard
+                    active={plan === 'yearly'}
+                    onPress={() => setPlan('yearly')}
+                    name="Yearly"
+                    price="$79.99"
+                    caption="save 33%"
+                    badge="Best value"
+                    scale={scale}
+                  />
+                </View>
 
-            <LinearGradient
-              colors={['#B74FF5', '#753AFF']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={upgradeButton(scale)}>
-              <Text style={upgradeText(scale)}>Upgrade to Premium</Text>
-            </LinearGradient>
-            <Text style={restoreText(scale)}>Restore purchase</Text>
+                <LinearGradient
+                  colors={['#B74FF5', '#753AFF']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={upgradeButton(scale)}>
+                  <Pressable onPress={purchase} style={upgradePress}>
+                    <Text style={upgradeText(scale)}>
+                      {purchasing ? 'Processing…' : 'Upgrade to Premium'}
+                    </Text>
+                  </Pressable>
+                </LinearGradient>
+                <Text style={restoreText(scale)}>Mock payment — no card required</Text>
+              </>
+            )}
           </LinearGradient>
         </View>
 
         <View style={menuCard(scale)}>
           {MENU_ROWS.map((row, index) => (
-            <Pressable key={row.label} style={menuRow(scale, index === MENU_ROWS.length - 1)}>
+            <View key={row.key} style={menuRow(scale, index === MENU_ROWS.length - 1)}>
               <View style={menuIconWrap(scale)}>{row.icon}</View>
               <Text style={menuLabel(scale)}>{row.label}</Text>
-              {row.value ? <Text style={menuValue(scale)}>{row.value}</Text> : null}
+              <Text style={menuValue(scale)}>{menuValueFor(row.key, stats)}</Text>
               <ChevronRightIcon size={18 * scale} color={NutriColors.textFaint} />
-            </Pressable>
+            </View>
           ))}
         </View>
 
-        <Pressable style={settingsRow(scale)}>
+        <View style={settingsRow(scale)}>
           <View style={menuIconWrap(scale)}>
             <GearIcon size={21 * scale} color={NutriColors.textDim} />
           </View>
           <Text style={menuLabel(scale)}>Settings</Text>
           <ChevronRightIcon size={18 * scale} color={NutriColors.textFaint} />
-        </Pressable>
+        </View>
       </ScrollView>
+
+      <Modal
+        visible={goalsVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGoalsVisible(false)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setGoalsVisible(false)} />
+          <View style={sheet(scale)}>
+            <Text style={sheetTitle(scale)}>Nutrition Goals</Text>
+            {(
+              [
+                ['calories', 'Daily calories (kcal)'],
+                ['protein', 'Protein (g)'],
+                ['carbs', 'Carbs (g)'],
+                ['fat', 'Fats (g)'],
+              ] as const
+            ).map(([key, label]) => (
+              <View key={key}>
+                <Text style={sheetLabel(scale)}>{label}</Text>
+                <TextInput
+                  style={sheetInput(scale)}
+                  keyboardType="number-pad"
+                  value={goalDraft[key]}
+                  onChangeText={(value) => setGoalDraft((draft) => ({ ...draft, [key]: value }))}
+                />
+              </View>
+            ))}
+            <Pressable onPress={saveGoals} disabled={savingGoals} style={sheetButton(scale)}>
+              <Text style={sheetButtonText(scale)}>{savingGoals ? 'Saving…' : 'Save Goals'}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+function menuValueFor(key: string, stats: UserStats | null): string {
+  if (!stats) return '';
+  if (key === 'recipes') return String(stats.recipes);
+  if (key === 'groups') return String(stats.groups);
+  if (key === 'points') return formatPoints(stats.points);
+  return '';
+}
+
+function formatPoints(points: number): string {
+  return points >= 1000 ? `${(points / 1000).toFixed(1)}k` : String(points);
+}
+
+function GoalCard({
+  Icon,
+  value,
+  label,
+  scale,
+}: {
+  Icon: (props: { size: number }) => React.ReactElement;
+  value: string;
+  label: string;
+  scale: number;
+}) {
+  return (
+    <View style={goalCard(scale)}>
+      <Icon size={22 * scale} />
+      <Text style={goalValue(scale)}>{value}</Text>
+      <Text style={goalLabel(scale)}>{label}</Text>
     </View>
   );
 }
@@ -213,16 +361,33 @@ function PlanCard({
   );
 }
 
+const modalBackdrop: ViewStyle = {
+  flex: 1,
+  backgroundColor: 'rgba(1, 5, 15, 0.72)',
+  justifyContent: 'flex-end',
+};
+
 const styles = {
   root: {
     flex: 1,
     backgroundColor: NutriColors.bg,
   } as ViewStyle,
+  modalDismiss: {
+    flex: 1,
+  } as ViewStyle,
+};
+
+const upgradePress: ViewStyle = {
+  alignSelf: 'stretch',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: '100%',
 };
 
 const topRow = (scale: number): ViewStyle => ({
   flexDirection: 'row',
-  justifyContent: 'flex-start',
+  justifyContent: 'space-between',
+  alignItems: 'center',
   paddingHorizontal: 26 * scale,
   marginTop: 18 * scale,
 });
@@ -238,15 +403,41 @@ const gearButton = (scale: number): ViewStyle => ({
   borderColor: NutriColors.borderMuted,
 });
 
+const logoutButton = (scale: number): ViewStyle => ({
+  paddingHorizontal: 14 * scale,
+  paddingVertical: 8 * scale,
+  borderRadius: 11 * scale,
+  backgroundColor: NutriColors.card,
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+});
+
+const logoutText = (scale: number): TextStyle => ({
+  color: '#FF6B81',
+  fontSize: 13.5 * scale,
+  fontWeight: '700',
+});
+
 const profileHead: ViewStyle = {
   alignItems: 'center',
   marginTop: 14,
 };
 
-const avatar = (scale: number): ImageStyle => ({
+const avatar = (scale: number): ViewStyle => ({
   width: 96 * scale,
   height: 96 * scale,
   borderRadius: 48 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(183, 79, 245, 0.18)',
+  borderWidth: 1.5,
+  borderColor: 'rgba(183, 79, 245, 0.55)',
+});
+
+const avatarText = (scale: number): TextStyle => ({
+  color: '#D9A8FF',
+  fontSize: 36 * scale,
+  fontWeight: '700',
 });
 
 const verifiedWrap = (scale: number): ViewStyle => ({
@@ -376,6 +567,21 @@ const freeChipText = (scale: number): TextStyle => ({
   fontWeight: '700',
 });
 
+const premiumChip = (scale: number): ViewStyle => ({
+  paddingHorizontal: 12 * scale,
+  paddingVertical: 6 * scale,
+  borderRadius: 10 * scale,
+  backgroundColor: 'rgba(255, 215, 107, 0.14)',
+  borderWidth: 1,
+  borderColor: 'rgba(255, 215, 107, 0.5)',
+});
+
+const premiumChipText = (scale: number): TextStyle => ({
+  color: '#FFD76B',
+  fontSize: 12.5 * scale,
+  fontWeight: '700',
+});
+
 const premiumCard = (scale: number): ViewStyle => ({
   marginHorizontal: 26 * scale,
   borderRadius: 22 * scale,
@@ -411,6 +617,14 @@ const premiumBody = (scale: number): TextStyle => ({
   lineHeight: 20 * scale,
   textAlign: 'center',
   marginTop: 6 * scale,
+});
+
+const premiumActiveText = (scale: number): TextStyle => ({
+  color: '#FFD76B',
+  fontSize: 13.5 * scale,
+  lineHeight: 20 * scale,
+  textAlign: 'center',
+  marginTop: 16 * scale,
 });
 
 const planRow = (scale: number): ViewStyle => ({
@@ -478,11 +692,10 @@ const planCheck = (active: boolean, scale: number): ViewStyle => ({
 
 const upgradeButton = (scale: number): ViewStyle => ({
   alignSelf: 'stretch',
-  alignItems: 'center',
-  justifyContent: 'center',
   height: 56 * scale,
   borderRadius: 17 * scale,
   marginTop: 18 * scale,
+  overflow: 'hidden',
   borderWidth: 1,
   borderColor: 'rgba(255, 255, 255, 0.22)',
 });
@@ -554,4 +767,57 @@ const settingsRow = (scale: number): ViewStyle => ({
   backgroundColor: NutriColors.card,
   borderWidth: 1,
   borderColor: NutriColors.borderMuted,
+});
+
+const sheet = (scale: number): ViewStyle => ({
+  backgroundColor: NutriColors.card,
+  borderTopWidth: 1.3,
+  borderLeftWidth: 1.3,
+  borderRightWidth: 1.3,
+  borderColor: 'rgba(22, 139, 255, 0.55)',
+  borderTopLeftRadius: 26 * scale,
+  borderTopRightRadius: 26 * scale,
+  paddingHorizontal: 20 * scale,
+  paddingTop: 20 * scale,
+  paddingBottom: 30 * scale,
+});
+
+const sheetTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 19 * scale,
+  fontWeight: '700',
+});
+
+const sheetLabel = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13 * scale,
+  fontWeight: '600',
+  marginTop: 14 * scale,
+  marginBottom: 8 * scale,
+});
+
+const sheetInput = (scale: number): TextStyle => ({
+  backgroundColor: NutriColors.input,
+  borderRadius: 14 * scale,
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+  paddingHorizontal: 14 * scale,
+  paddingVertical: 12 * scale,
+  color: '#FFFFFF',
+  fontSize: 15 * scale,
+});
+
+const sheetButton = (scale: number): ViewStyle => ({
+  marginTop: 22 * scale,
+  height: 54 * scale,
+  borderRadius: 16 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: NutriColors.purple,
+});
+
+const sheetButtonText = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 16 * scale,
+  fontWeight: '700',
 });

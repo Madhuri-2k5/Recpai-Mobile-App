@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, Text, View, type TextStyle, type ViewStyle } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -8,17 +8,40 @@ import { useRouter } from 'expo-router';
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
 import { FlashIcon, GalleryIcon, UtensilsIcon } from '@/components/icons';
+import { resetScanFlow, scanFlow } from '@/lib/scan-flow';
 
 export default function ScanScreen() {
   const { scale } = useAppFrame();
   const router = useRouter();
+  const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [flashOn, setFlashOn] = useState(false);
+  const [capturing, setCapturing] = useState(false);
 
   const granted = permission?.granted ?? false;
 
-  function startFlow() {
-    router.push('/scan-options');
+  async function capture() {
+    if (capturing) return;
+    setCapturing(true);
+    try {
+      resetScanFlow();
+      if (granted && cameraRef.current) {
+        const photo = await cameraRef.current.takePictureAsync({
+          base64: true,
+          quality: 0.55,
+          skipProcessing: true,
+        });
+        if (photo?.base64) {
+          scanFlow.imageBase64 = photo.base64;
+          scanFlow.imageUri = photo.uri;
+        }
+      }
+      router.push('/scan-options');
+    } catch {
+      router.push('/scan-options');
+    } finally {
+      setCapturing(false);
+    }
   }
 
   return (
@@ -64,13 +87,13 @@ export default function ScanScreen() {
         ) : null}
 
         <View style={controls(scale)} pointerEvents="box-none">
-          <Pressable style={sideButton(scale)} onPress={startFlow}>
+          <Pressable style={sideButton(scale)} onPress={capture}>
             <GalleryIcon size={26 * scale} color="#FFFFFF" />
             <Text style={sideLabel(scale)}>Gallery</Text>
           </Pressable>
 
-          <Pressable onPress={startFlow} style={({ pressed }) => [shutterOuter(scale), pressed && { opacity: 0.8 }]}>
-            <View style={shutterInner(scale)} />
+          <Pressable onPress={capture} disabled={capturing} style={({ pressed }) => [shutterOuter(scale), pressed && { opacity: 0.8 }]}>
+            <View style={shutterInner(scale, capturing)} />
           </Pressable>
 
           <Pressable style={sideButton(scale)} onPress={() => setFlashOn((value) => !value)}>
@@ -192,11 +215,12 @@ const shutterOuter = (scale: number): ViewStyle => ({
   justifyContent: 'center',
 });
 
-const shutterInner = (scale: number): ViewStyle => ({
+const shutterInner = (scale: number, capturing: boolean): ViewStyle => ({
   width: 62 * scale,
   height: 62 * scale,
   borderRadius: 31 * scale,
   backgroundColor: NutriColors.purple,
+  opacity: capturing ? 0.5 : 1,
   shadowColor: NutriColors.purple,
   shadowOpacity: 0.8,
   shadowRadius: 16,

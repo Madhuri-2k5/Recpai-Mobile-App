@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
-import { ScrollView, Text, View, type TextStyle, type ViewStyle } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, View, type TextStyle, type ViewStyle } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from 'expo-router';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
@@ -15,17 +17,51 @@ import {
   StarIcon,
   TrophyIcon,
 } from '@/components/icons';
-import {
-  daysToNextMilestone,
-  streakMilestones,
-  streakStats,
-  streakWeek,
-  type StreakDay,
-} from '@/data/streakMockData';
+import { api, type StreakPayload } from '@/lib/api';
 
 export default function StreakScreen() {
   const { scale } = useAppFrame();
+  const [data, setData] = useState<StreakPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      setLoading(true);
+      api
+        .streak()
+        .then((payload) => {
+          if (active) setData(payload.streak);
+        })
+        .catch(() => {
+          if (active) setData(null);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  const streakStats = {
+    currentStreak: data?.current ?? 0,
+    longestStreak: data?.longest ?? 0,
+    totalRecipesCooked: data?.totalRecipesCooked ?? 0,
+  };
+  const streakWeek = data?.week ?? [];
+  const streakMilestones = data?.milestones ?? [];
+  const daysToNextMilestone = data?.daysToNextMilestone ?? 0;
   const progress = streakStats.currentStreak / 30;
+
+  if (loading && !data) {
+    return (
+      <View style={[styles.root, loaderStyle]}>
+        <ActivityIndicator size="large" color={NutriColors.purple} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -179,6 +215,11 @@ const styles = {
   } as ViewStyle,
 };
 
+const loaderStyle: ViewStyle = {
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
 const title = (scale: number): TextStyle => ({
   color: '#FFFFFF',
   fontSize: 34 * scale,
@@ -224,7 +265,10 @@ const weekItem: ViewStyle = {
   alignItems: 'center',
 };
 
-const weekCircle = (entry: StreakDay, scale: number): ViewStyle => ({
+const weekCircle = (
+  entry: { day: string; done: boolean; isToday: boolean },
+  scale: number
+): ViewStyle => ({
   width: 40 * scale,
   height: 40 * scale,
   borderRadius: 20 * scale,

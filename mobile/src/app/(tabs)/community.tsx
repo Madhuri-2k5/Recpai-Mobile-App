@@ -1,23 +1,24 @@
-import { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-
+import { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
   type ImageStyle,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
 import {
-  BookmarkIcon,
   CheckCircleIcon,
   CommentIcon,
   HeartIcon,
@@ -28,13 +29,12 @@ import {
   UsersIcon,
 } from '@/components/icons';
 import {
-  challenges,
-  communityPosts,
-  groups,
-  recipeHistory,
+  api,
+  type CommunityChallenge,
+  type CommunityGroup,
   type CommunityPost,
-} from '@/data/communityMockData';
-import { getRecipeById } from '@/data/recipesMockData';
+  type Recipe,
+} from '@/lib/api';
 
 type CommunityTab = 'feed' | 'challenges' | 'groups';
 
@@ -42,15 +42,105 @@ export default function CommunityScreen() {
   const { scale } = useAppFrame();
   const router = useRouter();
   const [tab, setTab] = useState<CommunityTab>('feed');
-  const [liked, setLiked] = useState<Record<string, boolean>>({ 'post-1': true });
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [completedChallenge, setCompletedChallenge] = useState<CommunityChallenge | null>(null);
+  const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
+  const [groups, setGroups] = useState<CommunityGroup[]>([]);
+  const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
 
-  function toggleLike(id: string) {
-    setLiked((current) => ({ ...current, [id]: !current[id] }));
+  const [createVisible, setCreateVisible] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupKind, setNewGroupKind] = useState<'Friends' | 'Family'>('Friends');
+  const [creating, setCreating] = useState(false);
+  const [shareGroup, setShareGroup] = useState<CommunityGroup | null>(null);
+  const [sharing, setSharing] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [postsPayload, challengesPayload, groupsPayload, recipesPayload] = await Promise.all([
+        api.posts(),
+        api.challenges(),
+        api.groups(),
+        api.myRecipes(),
+      ]);
+      setPosts(postsPayload.posts);
+      setChallenges(challengesPayload.challenges);
+      setCompletedChallenge(challengesPayload.challenges.find((challenge) => challenge.completed) ?? null);
+      setGroups(groupsPayload.groups);
+      setMyRecipes(recipesPayload.recipes);
+    } catch {
+      // keep previous data on failure
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  async function toggleLike(post: CommunityPost) {
+    setPosts((current) =>
+      current.map((item) =>
+        item.id === post.id
+          ? { ...item, likedByMe: !item.likedByMe, likes: item.likes + (item.likedByMe ? -1 : 1) }
+          : item
+      )
+    );
+    try {
+      await api.likePost(post.id);
+    } catch {
+      setPosts((current) =>
+        current.map((item) =>
+          item.id === post.id ? { ...item, likedByMe: post.likedByMe, likes: post.likes } : item
+        )
+      );
+    }
   }
 
-  function toggleBookmark(id: string) {
-    setBookmarked((current) => ({ ...current, [id]: !current[id] }));
+  async function createGroup() {
+    if (!newGroupName.trim() || creating) return;
+    setCreating(true);
+    try {
+      await api.createGroup(newGroupName.trim(), newGroupKind);
+      setCreateVisible(false);
+      setNewGroupName('');
+      setNewGroupKind('Friends');
+      await load();
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function shareRecipe(group: CommunityGroup, recipe: Recipe) {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      await api.shareToGroup(group.id, recipe._id || recipe.id || '');
+      setShareGroup(null);
+      await load();
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  async function joinOrProgress(challenge: CommunityChallenge) {
+    try {
+      if (!challenge.joined) {
+        await api.joinChallenge(challenge.key);
+      } else if (!challenge.completed) {
+        await api.challengeProgress(challenge.key);
+      }
+      const refreshed = await api.challenges();
+      setChallenges(refreshed.challenges);
+      setCompletedChallenge(refreshed.challenges.find((item) => item.completed) ?? null);
+    } catch {
+      // ignore
+    }
   }
 
   return (
@@ -84,41 +174,39 @@ export default function CommunityScreen() {
           })}
         </View>
 
-        {tab === 'feed' ? (
+        {loading ? (
+          <View style={loaderWrap(scale)}>
+            <ActivityIndicator size="large" color={NutriColors.purple} />
+          </View>
+        ) : tab === 'feed' ? (
           <View style={listWrap(scale)}>
-            <View style={challengeBanner(scale)}>
-              <LinearGradient
-                colors={['#8F3BF3', '#B74FF5']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={bannerGradient(scale)}>
-                <CheckCircleIcon size={26 * scale} circleColor="#FFFFFF" checkColor="#7C3AED" />
-                <View style={styles.bannerText}>
-                  <Text style={bannerTitle(scale)}>7-Day Healthy Cooking Challenge</Text>
-                  <Text style={bannerBody(scale)}>Completed — 200 points earned!</Text>
-                </View>
-                <TrophyIcon size={26 * scale} color="#FFD76B" />
-              </LinearGradient>
-            </View>
+            {completedChallenge ? (
+              <View style={challengeBanner(scale)}>
+                <LinearGradient
+                  colors={['#8F3BF3', '#B74FF5']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={bannerGradient(scale)}>
+                  <CheckCircleIcon size={26 * scale} circleColor="#FFFFFF" checkColor="#7C3AED" />
+                  <View style={styles.bannerText}>
+                    <Text style={bannerTitle(scale)} numberOfLines={1}>
+                      {completedChallenge.name}
+                    </Text>
+                    <Text style={bannerBody(scale)}>Completed — 200 points earned!</Text>
+                  </View>
+                  <TrophyIcon size={26 * scale} color="#FFD76B" />
+                </LinearGradient>
+              </View>
+            ) : null}
 
-            {communityPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                liked={!!liked[post.id]}
-                bookmarked={!!bookmarked[post.id]}
-                onLike={() => toggleLike(post.id)}
-                onBookmark={() => toggleBookmark(post.id)}
-                scale={scale}
-              />
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} onLike={() => toggleLike(post)} scale={scale} />
             ))}
           </View>
-        ) : null}
-
-        {tab === 'challenges' ? (
+        ) : tab === 'challenges' ? (
           <View style={listWrap(scale)}>
             {challenges.map((challenge) => (
-              <View key={challenge.id} style={challengeCard(scale)}>
+              <View key={challenge.key} style={challengeCard(scale)}>
                 <View style={challengeTopRow(scale)}>
                   <View style={challengeIconWrap(scale)}>
                     <TrophyIcon size={24 * scale} color={NutriColors.amber} />
@@ -135,7 +223,9 @@ export default function CommunityScreen() {
                       <Text style={doneChipText(scale)}>Done</Text>
                     </View>
                   ) : (
-                    <Text style={joinChip(scale)}>Joined</Text>
+                    <Pressable onPress={() => joinOrProgress(challenge)} style={joinChip(scale)}>
+                      <Text style={joinChipText(scale)}>{challenge.joined ? '+ 1 day' : 'Join'}</Text>
+                    </Pressable>
                   )}
                 </View>
                 <Text style={challengeDescription(scale)}>{challenge.description}</Text>
@@ -155,34 +245,26 @@ export default function CommunityScreen() {
                   <Text style={challengeMeta(scale)}>
                     {challenge.progress}/{challenge.days} days
                   </Text>
-                  <Text style={challengeMeta(scale)}>🏆 {challenge.reward}</Text>
+                  <Text style={challengeMeta(scale)} numberOfLines={1}>
+                    🏆 {challenge.reward}
+                  </Text>
                 </View>
               </View>
             ))}
           </View>
-        ) : null}
-
-        {tab === 'groups' ? (
+        ) : (
           <View style={listWrap(scale)}>
             <Text style={groupSectionTitle(scale)}>Your Groups</Text>
             {groups.map((group) => (
               <View key={group.id} style={groupCard(scale)}>
-                <View style={avatarStack(scale)}>
-                  {group.avatars.map((avatar, index) => (
-                    <Image
-                      key={`${index}`}
-                      source={avatar}
-                      style={stackAvatar(scale, index)}
-                      contentFit="cover"
-                    />
-                  ))}
-                  <View style={[stackAvatar(scale, group.avatars.length), moreAvatar(scale)]}>
-                    <Text style={moreAvatarText(scale)}>+{group.members - group.avatars.length}</Text>
-                  </View>
+                <View style={groupAvatarWrap(scale)}>
+                  <UsersIcon size={24 * scale} color={NutriColors.blue} />
                 </View>
                 <View style={styles.groupText}>
                   <View style={groupNameRow(scale)}>
-                    <Text style={groupName(scale)}>{group.name}</Text>
+                    <Text style={groupName(scale)} numberOfLines={1}>
+                      {group.name}
+                    </Text>
                     <View style={kindChip(scale, group.kind)}>
                       <Text style={kindChipText(scale, group.kind)}>{group.kind}</Text>
                     </View>
@@ -194,10 +276,19 @@ export default function CommunityScreen() {
                     <Text style={groupMeta(scale)}>{group.sharedRecipes} recipes shared</Text>
                   </View>
                 </View>
+                <Pressable onPress={() => setShareGroup(group)} style={shareButton(scale)}>
+                  <ShareIcon size={16 * scale} color="#D9A8FF" />
+                </Pressable>
               </View>
             ))}
 
-            <Pressable style={createGroupButton(scale)}>
+            {groups.length === 0 ? (
+              <Text style={createGroupHint(scale)}>
+                You have no groups yet. Create one with friends or family to share recipes.
+              </Text>
+            ) : null}
+
+            <Pressable style={createGroupButton(scale)} onPress={() => setCreateVisible(true)}>
               <PlusIcon size={20 * scale} />
               <Text style={createGroupText(scale)}>Create Group</Text>
             </Pressable>
@@ -206,96 +297,181 @@ export default function CommunityScreen() {
             </Text>
 
             <Text style={groupSectionTitle(scale)}>Your Recipe History</Text>
-            {recipeHistory.map((entry) => {
-              const recipe = getRecipeById(entry.recipeId);
-              if (!recipe) return null;
-              return (
-                <Pressable
-                  key={entry.recipeId}
-                  onPress={() => router.push({ pathname: '/recipe/[id]', params: { id: recipe.id } })}
-                  style={historyCard(scale)}>
-                  <Image source={recipe.image} style={historyImage(scale)} contentFit="cover" />
-                  <View style={styles.historyText}>
-                    <Text style={historyName(scale)}>{recipe.name}</Text>
-                    <Text style={historyDate(scale)}>Cooked {entry.cookedOn}</Text>
+            {myRecipes.map((recipe) => (
+              <Pressable
+                key={recipe._id || recipe.id}
+                onPress={() =>
+                  router.push({
+                    pathname: '/recipe/[id]',
+                    params: { id: recipe._id || recipe.id || '' },
+                  })
+                }
+                style={historyCard(scale)}>
+                {recipe.imageUrl ? (
+                  <Image source={{ uri: recipe.imageUrl }} style={historyImage(scale)} contentFit="cover" />
+                ) : (
+                  <View style={[historyImage(scale), historyImagePlaceholder(scale)]}>
+                    <SparkleIcon size={20 * scale} color={NutriColors.purple} />
                   </View>
-                  <Text style={historyKcal(scale)}>{recipe.kcal} kcal</Text>
-                </Pressable>
-              );
-            })}
+                )}
+                <View style={styles.historyText}>
+                  <Text style={historyName(scale)} numberOfLines={1}>
+                    {recipe.title}
+                  </Text>
+                  <Text style={historyDate(scale)}>
+                    {recipe.cuisine} • {recipe.prepTimeMinutes} min
+                  </Text>
+                </View>
+                <Text style={historyKcal(scale)}>{recipe.nutrition.calories} kcal</Text>
+              </Pressable>
+            ))}
+            {myRecipes.length === 0 ? (
+              <Text style={createGroupHint(scale)}>Recipes you scan and add will show up here.</Text>
+            ) : null}
           </View>
-        ) : null}
+        )}
       </ScrollView>
+
+      <Modal
+        visible={createVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCreateVisible(false)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setCreateVisible(false)} />
+          <View style={sheet(scale)}>
+            <Text style={sheetTitle(scale)}>Create Group</Text>
+            <Text style={sheetLabel(scale)}>Group name</Text>
+            <TextInput
+              style={sheetInput(scale)}
+              placeholder="e.g. Family Recipes"
+              placeholderTextColor={NutriColors.textFaint}
+              value={newGroupName}
+              onChangeText={setNewGroupName}
+            />
+            <Text style={sheetLabel(scale)}>Type</Text>
+            <View style={kindRow(scale)}>
+              {(['Friends', 'Family'] as const).map((kind) => (
+                <Pressable
+                  key={kind}
+                  onPress={() => setNewGroupKind(kind)}
+                  style={kindOption(newGroupKind === kind, scale)}>
+                  <Text style={[kindOptionText(scale), newGroupKind === kind && styles.kindOptionTextActive]}>
+                    {kind}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Pressable onPress={createGroup} disabled={creating} style={sheetButton(scale)}>
+              <Text style={sheetButtonText(scale)}>{creating ? 'Creating…' : 'Create Group'}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={shareGroup !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShareGroup(null)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setShareGroup(null)} />
+          <View style={sheet(scale)}>
+            <Text style={sheetTitle(scale)}>Share to {shareGroup?.name}</Text>
+            <Text style={sheetLabel(scale)}>Pick one of your recipes</Text>
+            <ScrollView style={shareList(scale)} showsVerticalScrollIndicator={false}>
+              {myRecipes.map((recipe) => (
+                <Pressable
+                  key={recipe._id || recipe.id}
+                  onPress={() => shareGroup && shareRecipe(shareGroup, recipe)}
+                  style={shareRow(scale)}>
+                  <Text style={shareRowText(scale)} numberOfLines={1}>
+                    {recipe.title}
+                  </Text>
+                  <Text style={shareRowKcal(scale)}>{recipe.nutrition.calories} kcal</Text>
+                </Pressable>
+              ))}
+              {myRecipes.length === 0 ? (
+                <Text style={createGroupHint(scale)}>No recipes yet — scan a meal first.</Text>
+              ) : null}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 function PostCard({
   post,
-  liked,
-  bookmarked,
   onLike,
-  onBookmark,
   scale,
 }: {
   post: CommunityPost;
-  liked: boolean;
-  bookmarked: boolean;
   onLike: () => void;
-  onBookmark: () => void;
   scale: number;
 }) {
   return (
     <View style={postCard(scale)}>
       <View style={postHeader(scale)}>
-        <Image source={post.avatar} style={postAvatar(scale)} contentFit="cover" />
-        <View style={styles.postHeadText}>
-          <Text style={postAuthor(scale)}>{post.author}</Text>
-          <Text style={postTime(scale)}>{post.timeAgo}</Text>
+        <View style={postAvatar(scale)}>
+          <Text style={postAvatarText(scale)}>{(post.user.name[0] || 'U').toUpperCase()}</Text>
         </View>
-        <Text style={postMenu(scale)}>⋯</Text>
-      </View>
-
-      <Text style={postText(scale)}>{post.text}</Text>
-
-      {post.image ? (
-        <Image source={post.image} style={postImage(scale)} contentFit="cover" />
-      ) : null}
-
-      <View style={postHashtagRow(scale)}>
-        {post.hashtags.map((tag) => (
-          <Text key={tag} style={postHashtag(scale)}>
-            {tag}
+        <View style={styles.postHeadText}>
+          <Text style={postAuthor(scale)}>{post.user.name}</Text>
+          <Text style={postTime(scale)}>
+            {post.groupName ? `${post.groupName} • ` : ''}
+            {post.timeAgo}
           </Text>
-        ))}
+        </View>
       </View>
+
+      {post.text ? <Text style={postText(scale)}>{post.text}</Text> : null}
+
+      {post.recipe ? (
+        <View style={recipeChip(scale)}>
+          {post.recipe.imageUrl ? (
+            <Image source={{ uri: post.recipe.imageUrl }} style={recipeChipImage(scale)} contentFit="cover" />
+          ) : null}
+          <View style={styles.recipeChipText}>
+            <Text style={recipeChipName(scale)} numberOfLines={1}>
+              {post.recipe.title}
+            </Text>
+            <Text style={recipeChipKcal(scale)}>{post.recipe.kcal} kcal</Text>
+          </View>
+        </View>
+      ) : post.image ? (
+        <Image source={{ uri: post.image }} style={postImage(scale)} contentFit="cover" />
+      ) : null}
 
       <View style={postActions(scale)}>
         <Pressable onPress={onLike} style={actionItem(scale)}>
-          <HeartIcon size={20 * scale} color={liked ? '#FF5C7A' : NutriColors.textDim} filled={liked} />
-          <Text style={[actionText(scale), liked && { color: '#FF5C7A' }]}>
-            {(post.likes + (liked ? 1 : 0)).toLocaleString('en-US')}
+          <HeartIcon
+            size={20 * scale}
+            color={post.likedByMe ? '#FF5C7A' : NutriColors.textDim}
+            filled={post.likedByMe}
+          />
+          <Text style={[actionText(scale), post.likedByMe && { color: '#FF5C7A' }]}>
+            {post.likes.toLocaleString('en-US')}
           </Text>
         </Pressable>
         <View style={actionItem(scale)}>
           <CommentIcon size={20 * scale} color={NutriColors.textDim} />
           <Text style={actionText(scale)}>{post.comments}</Text>
         </View>
-        <View style={actionItem(scale)}>
+        <View style={[actionItem(scale), styles.bookmarkButton]}>
           <ShareIcon size={20 * scale} color={NutriColors.textDim} />
-          <Text style={actionText(scale)}>Share</Text>
         </View>
-        <Pressable onPress={onBookmark} style={styles.bookmarkButton}>
-          <BookmarkIcon
-            size={20 * scale}
-            color={bookmarked ? NutriColors.purple : NutriColors.textDim}
-            filled={bookmarked}
-          />
-        </Pressable>
       </View>
     </View>
   );
 }
+
+const modalBackdrop: ViewStyle = {
+  flex: 1,
+  backgroundColor: 'rgba(1, 5, 15, 0.72)',
+  justifyContent: 'flex-end',
+};
 
 const styles = {
   root: {
@@ -323,7 +499,23 @@ const styles = {
   bookmarkButton: {
     marginLeft: 'auto',
   } as ViewStyle,
+  recipeChipText: {
+    flex: 1,
+  } as ViewStyle,
+  kindOptionTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  } as TextStyle,
+  modalDismiss: {
+    flex: 1,
+  } as ViewStyle,
 };
+
+const loaderWrap = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 90 * scale,
+});
 
 const title = (scale: number): TextStyle => ({
   color: '#FFFFFF',
@@ -419,10 +611,21 @@ const postHeader = (scale: number): ViewStyle => ({
   gap: 12 * scale,
 });
 
-const postAvatar = (scale: number): ImageStyle => ({
+const postAvatar = (scale: number): ViewStyle => ({
   width: 44 * scale,
   height: 44 * scale,
   borderRadius: 22 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(46, 139, 255, 0.16)',
+  borderWidth: 1,
+  borderColor: 'rgba(46, 139, 255, 0.4)',
+});
+
+const postAvatarText = (scale: number): TextStyle => ({
+  color: '#8FB8FF',
+  fontSize: 17 * scale,
+  fontWeight: '700',
 });
 
 const postAuthor = (scale: number): TextStyle => ({
@@ -437,12 +640,6 @@ const postTime = (scale: number): TextStyle => ({
   marginTop: 2,
 });
 
-const postMenu = (scale: number): TextStyle => ({
-  color: NutriColors.textFaint,
-  fontSize: 22 * scale,
-  paddingHorizontal: 6 * scale,
-});
-
 const postText = (scale: number): TextStyle => ({
   color: '#DDE3F0',
   fontSize: 14.5 * scale,
@@ -450,29 +647,43 @@ const postText = (scale: number): TextStyle => ({
   marginTop: 12 * scale,
 });
 
+const recipeChip = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 12 * scale,
+  marginTop: 12 * scale,
+  padding: 10 * scale,
+  borderRadius: 15 * scale,
+  backgroundColor: NutriColors.input,
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+});
+
+const recipeChipImage = (scale: number): ImageStyle => ({
+  width: 52 * scale,
+  height: 52 * scale,
+  borderRadius: 11 * scale,
+  backgroundColor: NutriColors.card,
+});
+
+const recipeChipName = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 14.5 * scale,
+  fontWeight: '700',
+});
+
+const recipeChipKcal = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 12.5 * scale,
+  marginTop: 3,
+});
+
 const postImage = (scale: number): ImageStyle => ({
   width: '100%',
   height: 190 * scale,
   borderRadius: 15 * scale,
   marginTop: 12 * scale,
-});
-
-const postHashtagRow = (scale: number): ViewStyle => ({
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  gap: 8 * scale,
-  marginTop: 12 * scale,
-});
-
-const postHashtag = (scale: number): TextStyle => ({
-  color: '#8FA7FF',
-  fontSize: 12.5 * scale,
-  fontWeight: '600',
-  backgroundColor: 'rgba(46, 139, 255, 0.12)',
-  paddingHorizontal: 10 * scale,
-  paddingVertical: 5 * scale,
-  borderRadius: 9 * scale,
-  overflow: 'hidden',
+  backgroundColor: NutriColors.card,
 });
 
 const postActions = (scale: number): ViewStyle => ({
@@ -548,15 +759,19 @@ const doneChipText = (scale: number): TextStyle => ({
   fontWeight: '700',
 });
 
-const joinChip = (scale: number): TextStyle => ({
+const joinChip = (scale: number): ViewStyle => ({
+  paddingHorizontal: 12 * scale,
+  paddingVertical: 8 * scale,
+  borderRadius: 10 * scale,
+  backgroundColor: 'rgba(183, 79, 245, 0.16)',
+  borderWidth: 1,
+  borderColor: 'rgba(183, 79, 245, 0.5)',
+});
+
+const joinChipText = (scale: number): TextStyle => ({
   color: '#D9A8FF',
   fontSize: 13 * scale,
   fontWeight: '700',
-  backgroundColor: 'rgba(183, 79, 245, 0.14)',
-  paddingHorizontal: 12 * scale,
-  paddingVertical: 6 * scale,
-  borderRadius: 10 * scale,
-  overflow: 'hidden',
 });
 
 const challengeDescription = (scale: number): TextStyle => ({
@@ -578,12 +793,14 @@ const challengeMetaRow = (scale: number): ViewStyle => ({
   flexDirection: 'row',
   justifyContent: 'space-between',
   marginTop: 10 * scale,
+  gap: 10 * scale,
 });
 
 const challengeMeta = (scale: number): TextStyle => ({
   color: NutriColors.textFaint,
   fontSize: 12.5 * scale,
   fontWeight: '600',
+  flexShrink: 1,
 });
 
 const groupSectionTitle = (scale: number): TextStyle => ({
@@ -604,31 +821,13 @@ const groupCard = (scale: number): ViewStyle => ({
   padding: 16 * scale,
 });
 
-const avatarStack = (scale: number): ViewStyle => ({
-  width: 92 * scale,
-  height: 40 * scale,
-});
-
-const stackAvatar = (scale: number, index: number): ImageStyle => ({
-  position: 'absolute',
-  left: index * 26 * scale,
-  width: 40 * scale,
-  height: 40 * scale,
-  borderRadius: 20 * scale,
-  borderWidth: 2,
-  borderColor: NutriColors.card,
-});
-
-const moreAvatar = (scale: number): ViewStyle => ({
-  backgroundColor: NutriColors.track,
+const groupAvatarWrap = (scale: number): ViewStyle => ({
+  width: 46 * scale,
+  height: 46 * scale,
+  borderRadius: 15 * scale,
   alignItems: 'center',
   justifyContent: 'center',
-});
-
-const moreAvatarText = (scale: number): TextStyle => ({
-  color: NutriColors.textDim,
-  fontSize: 12 * scale,
-  fontWeight: '700',
+  backgroundColor: 'rgba(46, 139, 255, 0.14)',
 });
 
 const groupNameRow = (scale: number): ViewStyle => ({
@@ -641,14 +840,14 @@ const groupName = (scale: number): TextStyle => ({
   color: '#FFFFFF',
   fontSize: 16 * scale,
   fontWeight: '700',
+  flexShrink: 1,
 });
 
 const kindChip = (scale: number, kind: 'Friends' | 'Family'): ViewStyle => ({
   paddingHorizontal: 9 * scale,
   paddingVertical: 4 * scale,
   borderRadius: 8 * scale,
-  backgroundColor:
-    kind === 'Family' ? 'rgba(0, 215, 197, 0.13)' : 'rgba(46, 139, 255, 0.14)',
+  backgroundColor: kind === 'Family' ? 'rgba(0, 215, 197, 0.13)' : 'rgba(46, 139, 255, 0.14)',
 });
 
 const kindChipText = (scale: number, kind: 'Friends' | 'Family'): TextStyle => ({
@@ -668,6 +867,17 @@ const groupMeta = (scale: number): TextStyle => ({
   color: NutriColors.textFaint,
   fontSize: 12.5 * scale,
   marginRight: 8 * scale,
+});
+
+const shareButton = (scale: number): ViewStyle => ({
+  width: 40 * scale,
+  height: 40 * scale,
+  borderRadius: 13 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(183, 79, 245, 0.14)',
+  borderWidth: 1,
+  borderColor: 'rgba(183, 79, 245, 0.45)',
 });
 
 const createGroupButton = (scale: number): ViewStyle => ({
@@ -711,6 +921,12 @@ const historyImage = (scale: number): ImageStyle => ({
   width: 56 * scale,
   height: 56 * scale,
   borderRadius: 13 * scale,
+  backgroundColor: NutriColors.input,
+});
+
+const historyImagePlaceholder = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  justifyContent: 'center',
 });
 
 const historyName = (scale: number): TextStyle => ({
@@ -729,4 +945,103 @@ const historyKcal = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
   fontSize: 13 * scale,
   fontWeight: '600',
+});
+
+const sheet = (scale: number): ViewStyle => ({
+  backgroundColor: NutriColors.card,
+  borderTopWidth: 1.3,
+  borderLeftWidth: 1.3,
+  borderRightWidth: 1.3,
+  borderColor: 'rgba(22, 139, 255, 0.55)',
+  borderTopLeftRadius: 26 * scale,
+  borderTopRightRadius: 26 * scale,
+  paddingHorizontal: 20 * scale,
+  paddingTop: 20 * scale,
+  paddingBottom: 30 * scale,
+});
+
+const sheetTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 19 * scale,
+  fontWeight: '700',
+});
+
+const sheetLabel = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13 * scale,
+  fontWeight: '600',
+  marginTop: 16 * scale,
+  marginBottom: 8 * scale,
+});
+
+const sheetInput = (scale: number): TextStyle => ({
+  backgroundColor: NutriColors.input,
+  borderRadius: 14 * scale,
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+  paddingHorizontal: 14 * scale,
+  paddingVertical: 12 * scale,
+  color: '#FFFFFF',
+  fontSize: 15 * scale,
+});
+
+const kindRow = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  gap: 10 * scale,
+});
+
+const kindOption = (active: boolean, scale: number): ViewStyle => ({
+  flex: 1,
+  alignItems: 'center',
+  paddingVertical: 12 * scale,
+  borderRadius: 13 * scale,
+  backgroundColor: active ? 'rgba(183, 79, 245, 0.18)' : NutriColors.input,
+  borderWidth: 1.4,
+  borderColor: active ? NutriColors.purple : NutriColors.borderMuted,
+});
+
+const kindOptionText = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 14 * scale,
+});
+
+const sheetButton = (scale: number): ViewStyle => ({
+  marginTop: 22 * scale,
+  height: 54 * scale,
+  borderRadius: 16 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: NutriColors.purple,
+});
+
+const sheetButtonText = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 16 * scale,
+  fontWeight: '700',
+});
+
+const shareList = (scale: number): ViewStyle => ({
+  maxHeight: 260 * scale,
+});
+
+const shareRow = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12 * scale,
+  paddingVertical: 13 * scale,
+  borderBottomWidth: 1,
+  borderBottomColor: NutriColors.divider,
+});
+
+const shareRowText = (scale: number): TextStyle => ({
+  color: '#E9EDF8',
+  fontSize: 15 * scale,
+  fontWeight: '600',
+  flex: 1,
+});
+
+const shareRowKcal = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13 * scale,
 });

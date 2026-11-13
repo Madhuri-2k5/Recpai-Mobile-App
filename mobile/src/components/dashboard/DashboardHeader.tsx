@@ -1,18 +1,22 @@
 import { Text, View, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
-import { Image } from 'expo-image';
 
-import { user } from '@/data/dashboardMockData';
 import { useAppFrame } from '@/hooks/use-app-frame';
 
-export function DashboardHeader() {
+export function DashboardHeader({ name }: { name: string }) {
   const { scale } = useAppFrame();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning,' : hour < 17 ? 'Good afternoon,' : 'Good evening,';
+  const firstName = name.split(' ')[0] || name;
+
   return (
     <View style={container(scale)}>
       <View style={styles.textBlock}>
-        <Text style={greeting(scale)}>{user.greeting}</Text>
-        <Text style={name(scale)}>{user.name}</Text>
+        <Text style={greetingStyle(scale)}>{greeting}</Text>
+        <Text style={nameStyle(scale)}>{firstName}</Text>
       </View>
-      <Image source={user.avatar} style={avatar(scale)} contentFit="cover" transition={0} />
+      <View style={avatar(scale)}>
+        <Text style={avatarInitial(scale)}>{(firstName[0] || 'U').toUpperCase()}</Text>
+      </View>
     </View>
   );
 }
@@ -33,7 +37,7 @@ const styles = {
   } as ViewStyle,
 };
 
-function greeting(scale: number): TextStyle {
+function greetingStyle(scale: number): TextStyle {
   return {
     color: '#E8ECF7',
     fontSize: 20 * scale,
@@ -42,7 +46,7 @@ function greeting(scale: number): TextStyle {
   };
 }
 
-function name(scale: number): TextStyle {
+function nameStyle(scale: number): TextStyle {
   return {
     color: '#FFFFFF',
     fontSize: 40 * scale,
@@ -51,10 +55,23 @@ function name(scale: number): TextStyle {
   };
 }
 
-function avatar(scale: number): ImageStyle {
+function avatar(scale: number): ImageStyle & ViewStyle {
   return {
     width: 62 * scale,
     height: 62 * scale,
     borderRadius: 31 * scale,
+    backgroundColor: 'rgba(183, 79, 245, 0.2)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(183, 79, 245, 0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+}
+
+function avatarInitial(scale: number): TextStyle {
+  return {
+    color: '#D9A8FF',
+    fontSize: 26 * scale,
+    fontWeight: '700',
   };
 }
