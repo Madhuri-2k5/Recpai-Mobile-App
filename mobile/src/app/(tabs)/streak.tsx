@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View, type TextStyle, type ViewStyle } from 'react-native';
+import { Pressable, ActivityIndicator, ScrollView, Text, View, type TextStyle, type ViewStyle } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
@@ -23,27 +23,49 @@ export default function StreakScreen() {
   const { scale } = useAppFrame();
   const [data, setData] = useState<StreakPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [claimingDays, setClaimingDays] = useState<number | null>(null);
+  const [claimSuccessMessage, setClaimSuccessMessage] = useState<string | null>(null);
+
+  const fetchStreak = useCallback(() => {
+    let active = true;
+    setLoading(true);
+    api
+      .streak()
+      .then((payload) => {
+        if (active) setData(payload.streak);
+      })
+      .catch(() => {
+        if (active) setData(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      let active = true;
-      setLoading(true);
-      api
-        .streak()
-        .then((payload) => {
-          if (active) setData(payload.streak);
-        })
-        .catch(() => {
-          if (active) setData(null);
-        })
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-      return () => {
-        active = false;
-      };
-    }, [])
+      const cancel = fetchStreak();
+      return cancel;
+    }, [fetchStreak])
   );
+
+  async function handleClaim(days: number) {
+    if (claimingDays !== null) return;
+    setClaimingDays(days);
+    try {
+      const result = await api.claimMilestone(days);
+      setData(result.streak);
+      setClaimSuccessMessage(result.message);
+      setTimeout(() => setClaimSuccessMessage(null), 4500);
+    } catch {
+      // ignore
+    } finally {
+      setClaimingDays(null);
+    }
+  }
 
   const streakStats = {
     currentStreak: data?.current ?? 0,
@@ -53,7 +75,6 @@ export default function StreakScreen() {
   const streakWeek = data?.week ?? [];
   const streakMilestones = data?.milestones ?? [];
   const daysToNextMilestone = data?.daysToNextMilestone ?? 0;
-  const progress = streakStats.currentStreak / 30;
 
   if (loading && !data) {
     return (
@@ -66,7 +87,9 @@ export default function StreakScreen() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 150 * scale }}>
         <Text style={title(scale)}>Your Streak</Text>
         <Text style={subtitle(scale)}>Consistency builds results!</Text>
 
@@ -114,35 +137,63 @@ export default function StreakScreen() {
           </View>
         </View>
 
+        {claimSuccessMessage ? (
+          <View style={[card(scale), claimBanner(scale)]}>
+            <CheckCircleIcon size={24 * scale} circleColor={NutriColors.green} />
+            <Text style={claimBannerText(scale)}>{claimSuccessMessage}</Text>
+          </View>
+        ) : null}
+
         <Text style={sectionTitle(scale)}>Milestones &amp; Rewards</Text>
         <View style={milestoneList(scale)}>
-          {streakMilestones.map((milestone) => (
-            <View key={milestone.name} style={[card(scale), milestoneCard(scale)]}>
-              <View style={milestoneIcon(milestone.status, scale)}>
-                {milestone.status === 'completed' ? (
-                  <CheckIcon size={20 * scale} color="#FFFFFF" />
-                ) : milestone.status === 'in-progress' ? (
-                  <FlameTileIcon size={22 * scale} />
-                ) : (
-                  <TrophyIcon size={22 * scale} color={NutriColors.textFaint} />
-                )}
-              </View>
-              <View style={styles.milestoneText}>
-                <Text style={milestoneName(scale)}>{milestone.name}</Text>
-                <Text style={milestoneReward(scale)}>{milestone.reward}</Text>
-                {milestone.status === 'in-progress' ? (
-                  <View style={progressTrack(scale)}>
-                    <LinearGradient
-                      colors={['#B74FF5', '#753AFF']}
-                      start={{ x: 0, y: 0.5 }}
-                      end={{ x: 1, y: 0.5 }}
-                      style={progressFill(progress)}
-                    />
-                  </View>
-                ) : null}
-              </View>
+          {streakMilestones.map((milestone) => {
+            const milestoneProgress =
+              milestone.days > 0 ? Math.min(1, streakStats.currentStreak / milestone.days) : 0;
+            return (
+              <View key={milestone.name} style={[card(scale), milestoneCard(scale)]}>
+                <View style={milestoneIcon(milestone.status, scale)}>
+                  {milestone.status === 'completed' ? (
+                    <CheckIcon size={20 * scale} color="#FFFFFF" />
+                  ) : milestone.status === 'in-progress' ? (
+                    <FlameTileIcon size={22 * scale} />
+                  ) : (
+                    <TrophyIcon size={22 * scale} color={NutriColors.textFaint} />
+                  )}
+                </View>
+                <View style={styles.milestoneText}>
+                  <Text style={milestoneName(scale)}>{milestone.name}</Text>
+                  <Text style={milestoneReward(scale)}>{milestone.reward}</Text>
+                  {milestone.status === 'in-progress' ? (
+                    <View style={progressTrack(scale)}>
+                      <LinearGradient
+                        colors={['#B74FF5', '#753AFF']}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={progressFill(milestoneProgress)}
+                      />
+                    </View>
+                  ) : null}
+                </View>
               {milestone.status === 'completed' ? (
-                <CheckCircleIcon size={26 * scale} circleColor={NutriColors.green} />
+                milestone.claimed ? (
+                  <View style={claimedBadge(scale)}>
+                    <CheckCircleIcon size={16 * scale} circleColor={NutriColors.green} />
+                    <Text style={claimedBadgeText(scale)}>Claimed</Text>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => handleClaim(milestone.days)}
+                    disabled={claimingDays === milestone.days}
+                    style={claimRewardButton(scale)}>
+                    <LinearGradient
+                      colors={['#00D58A', '#00B876']}
+                      style={claimRewardGradient(scale)}>
+                      <Text style={claimRewardText(scale)}>
+                        {claimingDays === milestone.days ? '…' : 'Claim'}
+                      </Text>
+                    </LinearGradient>
+                  </Pressable>
+                )
               ) : (
                 <Text style={milestoneChip(milestone.status, scale)}>
                   {milestone.status === 'in-progress'
@@ -151,7 +202,8 @@ export default function StreakScreen() {
                 </Text>
               )}
             </View>
-          ))}
+          );
+        })}
         </View>
 
         <Text style={sectionTitle(scale)}>Streak Stats</Text>
@@ -416,3 +468,57 @@ const statDivider = (scale: number): ViewStyle => ({
   height: 1,
   backgroundColor: NutriColors.divider,
 });
+
+const claimBanner = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 12 * scale,
+  marginHorizontal: 26 * scale,
+  marginTop: 14 * scale,
+  padding: 14 * scale,
+  backgroundColor: 'rgba(0, 213, 138, 0.12)',
+  borderColor: 'rgba(0, 213, 138, 0.45)',
+});
+
+const claimBannerText = (scale: number): TextStyle => ({
+  color: NutriColors.green,
+  fontSize: 14 * scale,
+  fontWeight: '600',
+  flex: 1,
+});
+
+const claimedBadge = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6 * scale,
+  paddingHorizontal: 10 * scale,
+  paddingVertical: 5 * scale,
+  borderRadius: 10 * scale,
+  backgroundColor: 'rgba(0, 213, 138, 0.14)',
+});
+
+const claimedBadgeText = (scale: number): TextStyle => ({
+  color: NutriColors.green,
+  fontSize: 12.5 * scale,
+  fontWeight: '700',
+});
+
+const claimRewardButton = (scale: number): ViewStyle => ({
+  borderRadius: 12 * scale,
+  overflow: 'hidden',
+});
+
+const claimRewardGradient = (scale: number): ViewStyle => ({
+  paddingHorizontal: 16 * scale,
+  paddingVertical: 8 * scale,
+  borderRadius: 12 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const claimRewardText = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 13 * scale,
+  fontWeight: '700',
+});
+

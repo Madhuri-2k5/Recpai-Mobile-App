@@ -9,12 +9,17 @@ import { ProgressRing } from './ProgressRing';
 
 export function MacroSummary({ stats }: { stats: Record<string, NutrientStat> }) {
   const { scale } = useAppFrame();
+  if (!stats) return null;
+
   return (
     <View style={row(scale)}>
       {macroKeys.map((key, index) => {
         const stat = stats[key];
-        const progress = stat.consumed / stat.target;
-        const percent = Math.round(progress * 100);
+        if (!stat) return null;
+        const target = Math.max(1, stat.target || 1);
+        const consumed = stat.consumed || 0;
+        const progress = Math.min(1, consumed / target);
+        const percent = Math.min(999, Math.round((consumed / target) * 100));
         return (
           <Fragment key={key}>
             {index > 0 ? <View style={separator(scale)} /> : null}
@@ -31,7 +36,7 @@ export function MacroSummary({ stats }: { stats: Record<string, NutrientStat> })
               </ProgressRing>
               <Text style={name(scale)}>{stat.label}</Text>
               <Text style={quantity(scale)}>
-                {stat.consumed}
+                {consumed}
                 {stat.unit}
                 <Text style={quantityTarget(scale)}>
                   {' '}

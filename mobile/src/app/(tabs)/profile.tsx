@@ -6,30 +6,35 @@ import {
   Text,
   TextInput,
   View,
+  type ImageStyle,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect } from 'expo-router';
-import { ChevronRightIcon } from '@/components/dashboard/icons';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
 import {
   BookIcon,
   CarbsIcon,
+  CheckCircleIcon,
   CheckIcon,
+  ChevronRightIcon,
+  CloseIcon,
   CrownIcon,
   FatIcon,
   FlameTileIcon,
   GearIcon,
   ProteinIcon,
+  SparkleIcon,
   TrophyIcon,
   UsersIcon,
   VerifiedIcon,
 } from '@/components/icons';
-import { api, type Goals, type Subscription, type UserStats } from '@/lib/api';
+import { api, type Goals, type Recipe, type Subscription, type UserStats } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
 const MENU_ROWS = [
@@ -42,22 +47,29 @@ type Plan = 'monthly' | 'yearly';
 
 export default function ProfileScreen() {
   const { scale } = useAppFrame();
+  const router = useRouter();
   const { user, signOut } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [goals, setGoals] = useState<Goals | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plan, setPlan] = useState<Plan>('yearly');
   const [purchasing, setPurchasing] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [subMessage, setSubMessage] = useState('');
   const [goalsVisible, setGoalsVisible] = useState(false);
   const [goalDraft, setGoalDraft] = useState({ calories: '', protein: '', carbs: '', fat: '' });
   const [savingGoals, setSavingGoals] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [recipesModalVisible, setRecipesModalVisible] = useState(false);
+  const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
 
   const load = useCallback(async () => {
     try {
-      const payload = await api.stats();
+      const [payload, recipesPayload] = await Promise.all([api.stats(), api.myRecipes()]);
       setStats(payload.stats);
       setGoals(payload.goals);
       setSubscription(payload.subscription);
+      setMyRecipes(recipesPayload.recipes);
     } catch {
       // keep previous
     }
@@ -100,11 +112,38 @@ export default function ProfileScreen() {
   async function purchase() {
     if (purchasing) return;
     setPurchasing(true);
+    setSubMessage('');
     try {
       const payload = await api.purchase(plan);
       setSubscription(payload.subscription);
+      setSubMessage(`Successfully upgraded to NutriAI Premium (${plan} plan)!`);
     } finally {
       setPurchasing(false);
+    }
+  }
+
+  async function cancelSubscription() {
+    if (canceling) return;
+    setCanceling(true);
+    setSubMessage('');
+    try {
+      const payload = await api.cancelSubscription();
+      setSubscription(payload.subscription);
+      setSubMessage('Your subscription has been canceled. You have returned to the Free plan.');
+    } catch {
+      setSubMessage('Cancellation failed. Please try again.');
+    } finally {
+      setCanceling(false);
+    }
+  }
+
+  function handleMenuPress(key: string) {
+    if (key === 'recipes') {
+      setRecipesModalVisible(true);
+    } else if (key === 'groups') {
+      router.push({ pathname: '/community', params: { tab: 'groups' } });
+    } else if (key === 'points') {
+      router.push('/streak');
     }
   }
 
@@ -114,11 +153,11 @@ export default function ProfileScreen() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 * scale }}>
         <View style={topRow(scale)}>
-          <View style={gearButton(scale)}>
+          <Pressable onPress={() => setSettingsVisible(true)} style={gearButton(scale)}>
             <GearIcon size={22 * scale} color={NutriColors.textDim} />
-          </View>
+          </Pressable>
           <Pressable onPress={signOut} style={logoutButton(scale)}>
             <Text style={logoutText(scale)}>Log out</Text>
           </Pressable>
@@ -169,6 +208,13 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {subMessage ? (
+          <View style={subBanner(scale)}>
+            <CheckCircleIcon size={18 * scale} circleColor={NutriColors.green} />
+            <Text style={subBannerText(scale)}>{subMessage}</Text>
+          </View>
+        ) : null}
+
         <View style={premiumCard(scale)}>
           <LinearGradient
             colors={['#1A1033', '#241543']}
@@ -189,6 +235,14 @@ export default function ProfileScreen() {
                   Thanks for supporting NutriAI! Your {subscription?.plan} plan renews on{' '}
                   {subscription?.renewsAt ? new Date(subscription.renewsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}.
                 </Text>
+                <Pressable
+                  onPress={cancelSubscription}
+                  disabled={canceling}
+                  style={cancelButton(scale)}>
+                  <Text style={cancelButtonText(scale)}>
+                    {canceling ? 'Canceling…' : 'Cancel Subscription'}
+                  </Text>
+                </Pressable>
               </>
             ) : (
               <>
@@ -231,24 +285,28 @@ export default function ProfileScreen() {
 
         <View style={menuCard(scale)}>
           {MENU_ROWS.map((row, index) => (
-            <View key={row.key} style={menuRow(scale, index === MENU_ROWS.length - 1)}>
+            <Pressable
+              key={row.key}
+              onPress={() => handleMenuPress(row.key)}
+              style={menuRow(scale, index === MENU_ROWS.length - 1)}>
               <View style={menuIconWrap(scale)}>{row.icon}</View>
               <Text style={menuLabel(scale)}>{row.label}</Text>
               <Text style={menuValue(scale)}>{menuValueFor(row.key, stats)}</Text>
               <ChevronRightIcon size={18 * scale} color={NutriColors.textFaint} />
-            </View>
+            </Pressable>
           ))}
         </View>
 
-        <View style={settingsRow(scale)}>
+        <Pressable onPress={() => setSettingsVisible(true)} style={settingsRow(scale)}>
           <View style={menuIconWrap(scale)}>
             <GearIcon size={21 * scale} color={NutriColors.textDim} />
           </View>
           <Text style={menuLabel(scale)}>Settings</Text>
           <ChevronRightIcon size={18 * scale} color={NutriColors.textFaint} />
-        </View>
+        </Pressable>
       </ScrollView>
 
+      {/* Goals Editor Modal */}
       <Modal
         visible={goalsVisible}
         transparent
@@ -279,6 +337,131 @@ export default function ProfileScreen() {
             <Pressable onPress={saveGoals} disabled={savingGoals} style={sheetButton(scale)}>
               <Text style={sheetButtonText(scale)}>{savingGoals ? 'Saving…' : 'Save Goals'}</Text>
             </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal
+        visible={settingsVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSettingsVisible(false)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setSettingsVisible(false)} />
+          <View style={sheet(scale)}>
+            <View style={settingsHeader(scale)}>
+              <Text style={sheetTitle(scale)}>App Settings</Text>
+              <Pressable onPress={() => setSettingsVisible(false)}>
+                <CloseIcon size={20 * scale} />
+              </Pressable>
+            </View>
+
+            <View style={settingsItem(scale)}>
+              <Text style={settingsItemLabel(scale)}>Application</Text>
+              <Text style={settingsItemValue(scale)}>RecPai 2.0 (NutriAI)</Text>
+            </View>
+            <View style={settingsItem(scale)}>
+              <Text style={settingsItemLabel(scale)}>Account</Text>
+              <Text style={settingsItemValue(scale)}>{user?.name} ({user?.email})</Text>
+            </View>
+            <View style={settingsItem(scale)}>
+              <Text style={settingsItemLabel(scale)}>Backend Mode</Text>
+              <Text style={settingsItemValue(scale)}>Dual Mode (MongoDB + Embedded)</Text>
+            </View>
+            <View style={settingsItem(scale)}>
+              <Text style={settingsItemLabel(scale)}>AI Engine</Text>
+              <Text style={settingsItemValue(scale)}>Gemini 2.5 Flash + Resilient Fallback</Text>
+            </View>
+
+            <Pressable
+              onPress={() => {
+                setSettingsVisible(false);
+                signOut();
+              }}
+              style={settingsLogoutBtn(scale)}>
+              <Text style={settingsLogoutText(scale)}>Sign Out</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Saved Recipes History Modal */}
+      <Modal
+        visible={recipesModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRecipesModalVisible(false)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setRecipesModalVisible(false)} />
+          <View style={[sheet(scale), { maxHeight: '82%' }]}>
+            <View style={settingsHeader(scale)}>
+              <View>
+                <Text style={sheetTitle(scale)}>Recipe History</Text>
+                <Text style={sheetSubtitle(scale)}>
+                  {myRecipes.length} {myRecipes.length === 1 ? 'saved recipe' : 'saved recipes'}
+                </Text>
+              </View>
+              <Pressable onPress={() => setRecipesModalVisible(false)} style={modalCloseBtn(scale)}>
+                <CloseIcon size={20 * scale} />
+              </Pressable>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 * scale, marginTop: 12 * scale }}>
+              {myRecipes.map((r) => (
+                <Pressable
+                  key={r._id || r.id}
+                  onPress={() => {
+                    setRecipesModalVisible(false);
+                    router.push({
+                      pathname: '/recipe/[id]',
+                      params: { id: r._id || r.id || '' },
+                    });
+                  }}
+                  style={recipeHistoryItem(scale)}>
+                  {r.imageUrl ? (
+                    <Image source={{ uri: r.imageUrl }} style={recipeHistoryThumb(scale)} contentFit="cover" />
+                  ) : (
+                    <View style={[recipeHistoryThumb(scale), recipeHistoryPlaceholder(scale)]}>
+                      <SparkleIcon size={20 * scale} color={NutriColors.purple} />
+                    </View>
+                  )}
+                  <View style={{ flex: 1, marginLeft: 12 * scale }}>
+                    <Text style={recipeHistoryTitle(scale)} numberOfLines={1}>
+                      {r.title}
+                    </Text>
+                    <Text style={recipeHistoryMeta(scale)}>
+                      {r.cuisine} • {r.prepTimeMinutes} min • {r.servings} {r.servings === 1 ? 'portion' : 'portions'}
+                    </Text>
+                  </View>
+                  <Text style={recipeHistoryKcal(scale)}>{r.nutrition?.calories || 0} kcal</Text>
+                </Pressable>
+              ))}
+
+              {myRecipes.length === 0 ? (
+                <View style={emptyRecipesWrap(scale)}>
+                  <SparkleIcon size={36 * scale} color={NutriColors.purple} />
+                  <Text style={emptyRecipesTitle(scale)}>No saved recipes yet</Text>
+                  <Text style={emptyRecipesBody(scale)}>
+                    Scan food or ingredients to generate custom recipes with nutrition facts and scalable servings.
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      setRecipesModalVisible(false);
+                      router.push('/scan');
+                    }}
+                    style={emptyRecipesBtn(scale)}>
+                    <LinearGradient
+                      colors={['#B74FF5', '#753AFF']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={emptyRecipesGradient(scale)}>
+                      <Text style={emptyRecipesBtnText(scale)}>Scan Food Now</Text>
+                    </LinearGradient>
+                  </Pressable>
+                </View>
+              ) : null}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -361,6 +544,10 @@ function PlanCard({
   );
 }
 
+function StatDivider({ scale }: { scale: number }) {
+  return <View style={statDivider(scale)} />;
+}
+
 const modalBackdrop: ViewStyle = {
   flex: 1,
   backgroundColor: 'rgba(1, 5, 15, 0.72)',
@@ -377,13 +564,6 @@ const styles = {
   } as ViewStyle,
 };
 
-const upgradePress: ViewStyle = {
-  alignSelf: 'stretch',
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: '100%',
-};
-
 const topRow = (scale: number): ViewStyle => ({
   flexDirection: 'row',
   justifyContent: 'space-between',
@@ -393,79 +573,82 @@ const topRow = (scale: number): ViewStyle => ({
 });
 
 const gearButton = (scale: number): ViewStyle => ({
-  width: 46 * scale,
-  height: 46 * scale,
+  width: 44 * scale,
+  height: 44 * scale,
   borderRadius: 15 * scale,
-  alignItems: 'center',
-  justifyContent: 'center',
   backgroundColor: NutriColors.card,
   borderWidth: 1,
   borderColor: NutriColors.borderMuted,
+  alignItems: 'center',
+  justifyContent: 'center',
 });
 
 const logoutButton = (scale: number): ViewStyle => ({
-  paddingHorizontal: 14 * scale,
-  paddingVertical: 8 * scale,
-  borderRadius: 11 * scale,
-  backgroundColor: NutriColors.card,
+  paddingHorizontal: 16 * scale,
+  paddingVertical: 10 * scale,
+  borderRadius: 14 * scale,
+  backgroundColor: 'rgba(255, 92, 122, 0.12)',
   borderWidth: 1,
-  borderColor: NutriColors.borderMuted,
+  borderColor: 'rgba(255, 92, 122, 0.35)',
 });
 
 const logoutText = (scale: number): TextStyle => ({
-  color: '#FF6B81',
+  color: '#FF7A93',
   fontSize: 13.5 * scale,
   fontWeight: '700',
 });
 
 const profileHead: ViewStyle = {
   alignItems: 'center',
-  marginTop: 14,
+  marginTop: 18,
 };
 
 const avatar = (scale: number): ViewStyle => ({
-  width: 96 * scale,
-  height: 96 * scale,
-  borderRadius: 48 * scale,
+  width: 106 * scale,
+  height: 106 * scale,
+  borderRadius: 53 * scale,
+  backgroundColor: 'rgba(183, 79, 245, 0.16)',
+  borderWidth: 3 * scale,
+  borderColor: NutriColors.purple,
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: 'rgba(183, 79, 245, 0.18)',
-  borderWidth: 1.5,
-  borderColor: 'rgba(183, 79, 245, 0.55)',
 });
 
 const avatarText = (scale: number): TextStyle => ({
   color: '#D9A8FF',
-  fontSize: 36 * scale,
-  fontWeight: '700',
+  fontSize: 42 * scale,
+  fontWeight: '800',
 });
 
 const verifiedWrap = (scale: number): ViewStyle => ({
   position: 'absolute',
-  right: -2,
-  bottom: -2,
+  bottom: 2 * scale,
+  right: 2 * scale,
 });
 
 const name = (scale: number): TextStyle => ({
   color: '#FFFFFF',
-  fontSize: 26 * scale,
-  fontWeight: '700',
+  fontSize: 24 * scale,
+  fontWeight: '800',
   marginTop: 14 * scale,
+  letterSpacing: -0.3,
 });
 
 const handle = (scale: number): TextStyle => ({
-  color: NutriColors.textFaint,
+  color: NutriColors.textDim,
   fontSize: 14 * scale,
-  marginTop: 4 * scale,
+  marginTop: 3 * scale,
 });
 
 const statsRow = (scale: number): ViewStyle => ({
   flexDirection: 'row',
   alignItems: 'center',
+  justifyContent: 'space-between',
   marginHorizontal: 26 * scale,
-  marginTop: 22 * scale,
+  marginTop: 26 * scale,
   paddingVertical: 18 * scale,
-  borderRadius: 20 * scale,
+  paddingHorizontal: 20 * scale,
+  borderRadius: 22 * scale,
   backgroundColor: NutriColors.card,
   borderWidth: 1,
   borderColor: NutriColors.borderMuted,
@@ -478,25 +661,27 @@ const statCell: ViewStyle = {
 
 const statValue = (scale: number): TextStyle => ({
   color: '#FFFFFF',
-  fontSize: 22 * scale,
-  fontWeight: '700',
+  fontSize: 20 * scale,
+  fontWeight: '800',
 });
 
 const statLabel = (scale: number): TextStyle => ({
-  color: NutriColors.textFaint,
+  color: NutriColors.textDim,
   fontSize: 12.5 * scale,
-  marginTop: 4 * scale,
+  marginTop: 3 * scale,
 });
 
-const StatDivider = ({ scale }: { scale: number }) => (
-  <View style={{ width: 1, height: 34 * scale, backgroundColor: NutriColors.divider }} />
-);
+const statDivider = (scale: number): ViewStyle => ({
+  width: 1,
+  height: 28 * scale,
+  backgroundColor: NutriColors.divider,
+});
 
 const sectionHead = (scale: number): ViewStyle => ({
   flexDirection: 'row',
-  alignItems: 'center',
   justifyContent: 'space-between',
-  marginTop: 28 * scale,
+  alignItems: 'center',
+  marginTop: 30 * scale,
   paddingHorizontal: 26 * scale,
   marginBottom: 14 * scale,
 });
@@ -582,6 +767,26 @@ const premiumChipText = (scale: number): TextStyle => ({
   fontWeight: '700',
 });
 
+const subBanner = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 10 * scale,
+  marginHorizontal: 26 * scale,
+  marginBottom: 12 * scale,
+  padding: 12 * scale,
+  borderRadius: 14 * scale,
+  backgroundColor: 'rgba(0, 213, 138, 0.12)',
+  borderWidth: 1,
+  borderColor: 'rgba(0, 213, 138, 0.4)',
+});
+
+const subBannerText = (scale: number): TextStyle => ({
+  color: NutriColors.green,
+  fontSize: 13 * scale,
+  fontWeight: '600',
+  flex: 1,
+});
+
 const premiumCard = (scale: number): ViewStyle => ({
   marginHorizontal: 26 * scale,
   borderRadius: 22 * scale,
@@ -625,6 +830,22 @@ const premiumActiveText = (scale: number): TextStyle => ({
   lineHeight: 20 * scale,
   textAlign: 'center',
   marginTop: 16 * scale,
+});
+
+const cancelButton = (scale: number): ViewStyle => ({
+  marginTop: 16 * scale,
+  paddingHorizontal: 20 * scale,
+  paddingVertical: 11 * scale,
+  borderRadius: 13 * scale,
+  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  borderWidth: 1,
+  borderColor: 'rgba(255, 255, 255, 0.2)',
+});
+
+const cancelButtonText = (scale: number): TextStyle => ({
+  color: '#E2E8F0',
+  fontSize: 13.5 * scale,
+  fontWeight: '600',
 });
 
 const planRow = (scale: number): ViewStyle => ({
@@ -700,6 +921,12 @@ const upgradeButton = (scale: number): ViewStyle => ({
   borderColor: 'rgba(255, 255, 255, 0.22)',
 });
 
+const upgradePress: ViewStyle = {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
 const upgradeText = (scale: number): TextStyle => ({
   color: '#FFFFFF',
   fontSize: 16.5 * scale,
@@ -719,29 +946,30 @@ const menuCard = (scale: number): ViewStyle => ({
   backgroundColor: NutriColors.card,
   borderWidth: 1,
   borderColor: NutriColors.borderMuted,
-  paddingHorizontal: 16 * scale,
+  overflow: 'hidden',
 });
 
 const menuRow = (scale: number, last: boolean): ViewStyle => ({
   flexDirection: 'row',
   alignItems: 'center',
-  gap: 13 * scale,
+  gap: 14 * scale,
+  paddingHorizontal: 18 * scale,
   paddingVertical: 16 * scale,
   borderBottomWidth: last ? 0 : 1,
   borderBottomColor: NutriColors.divider,
 });
 
 const menuIconWrap = (scale: number): ViewStyle => ({
-  width: 40 * scale,
-  height: 40 * scale,
-  borderRadius: 13 * scale,
+  width: 38 * scale,
+  height: 38 * scale,
+  borderRadius: 12 * scale,
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: NutriColors.input,
 });
 
 const menuLabel = (scale: number): TextStyle => ({
-  color: '#E9EDF8',
+  color: '#FFFFFF',
   fontSize: 15.5 * scale,
   fontWeight: '600',
   flex: 1,
@@ -750,19 +978,18 @@ const menuLabel = (scale: number): TextStyle => ({
 const menuValue = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
   fontSize: 14 * scale,
-  fontWeight: '600',
-  marginRight: 4 * scale,
+  fontWeight: '700',
+  marginRight: 6 * scale,
 });
 
 const settingsRow = (scale: number): ViewStyle => ({
   flexDirection: 'row',
   alignItems: 'center',
-  gap: 13 * scale,
+  gap: 14 * scale,
   marginHorizontal: 26 * scale,
   marginTop: 14 * scale,
-  marginBottom: 150 * scale,
+  paddingHorizontal: 18 * scale,
   paddingVertical: 16 * scale,
-  paddingHorizontal: 16 * scale,
   borderRadius: 20 * scale,
   backgroundColor: NutriColors.card,
   borderWidth: 1,
@@ -774,23 +1001,23 @@ const sheet = (scale: number): ViewStyle => ({
   borderTopWidth: 1.3,
   borderLeftWidth: 1.3,
   borderRightWidth: 1.3,
-  borderColor: 'rgba(22, 139, 255, 0.55)',
+  borderColor: 'rgba(183, 79, 245, 0.45)',
   borderTopLeftRadius: 26 * scale,
   borderTopRightRadius: 26 * scale,
-  paddingHorizontal: 20 * scale,
-  paddingTop: 20 * scale,
-  paddingBottom: 30 * scale,
+  paddingHorizontal: 22 * scale,
+  paddingTop: 22 * scale,
+  paddingBottom: 36 * scale,
 });
 
 const sheetTitle = (scale: number): TextStyle => ({
   color: '#FFFFFF',
-  fontSize: 19 * scale,
+  fontSize: 20 * scale,
   fontWeight: '700',
 });
 
 const sheetLabel = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
-  fontSize: 13 * scale,
+  fontSize: 13.5 * scale,
   fontWeight: '600',
   marginTop: 14 * scale,
   marginBottom: 8 * scale,
@@ -801,10 +1028,10 @@ const sheetInput = (scale: number): TextStyle => ({
   borderRadius: 14 * scale,
   borderWidth: 1,
   borderColor: NutriColors.borderMuted,
-  paddingHorizontal: 14 * scale,
-  paddingVertical: 12 * scale,
+  paddingHorizontal: 16 * scale,
+  paddingVertical: 13 * scale,
   color: '#FFFFFF',
-  fontSize: 15 * scale,
+  fontSize: 15.5 * scale,
 });
 
 const sheetButton = (scale: number): ViewStyle => ({
@@ -819,5 +1046,150 @@ const sheetButton = (scale: number): ViewStyle => ({
 const sheetButtonText = (scale: number): TextStyle => ({
   color: '#FFFFFF',
   fontSize: 16 * scale,
+  fontWeight: '700',
+});
+
+const settingsHeader = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 16 * scale,
+});
+
+const settingsItem = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingVertical: 12 * scale,
+  borderBottomWidth: 1,
+  borderBottomColor: NutriColors.divider,
+});
+
+const settingsItemLabel = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 14 * scale,
+});
+
+const settingsItemValue = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 14 * scale,
+  fontWeight: '600',
+  maxWidth: 200 * scale,
+  textAlign: 'right',
+});
+
+const settingsLogoutBtn = (scale: number): ViewStyle => ({
+  marginTop: 22 * scale,
+  height: 50 * scale,
+  borderRadius: 14 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(255, 92, 122, 0.16)',
+  borderWidth: 1,
+  borderColor: 'rgba(255, 92, 122, 0.4)',
+});
+
+const settingsLogoutText = (scale: number): TextStyle => ({
+  color: '#FF7A93',
+  fontSize: 15 * scale,
+  fontWeight: '700',
+});
+
+const sheetSubtitle = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13 * scale,
+  marginTop: 2 * scale,
+});
+
+const modalCloseBtn = (scale: number): ViewStyle => ({
+  width: 36 * scale,
+  height: 36 * scale,
+  borderRadius: 18 * scale,
+  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const recipeHistoryItem = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingVertical: 12 * scale,
+  paddingHorizontal: 12 * scale,
+  borderRadius: 16 * scale,
+  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  marginBottom: 10 * scale,
+  borderWidth: 1,
+  borderColor: 'rgba(255, 255, 255, 0.06)',
+});
+
+const recipeHistoryThumb = (scale: number): ImageStyle => ({
+  width: 50 * scale,
+  height: 50 * scale,
+  borderRadius: 12 * scale,
+});
+
+const recipeHistoryPlaceholder = (scale: number): ViewStyle => ({
+  backgroundColor: 'rgba(183, 79, 245, 0.15)',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const recipeHistoryTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 15 * scale,
+  fontWeight: '700',
+});
+
+const recipeHistoryMeta = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 12.5 * scale,
+  marginTop: 4 * scale,
+});
+
+const recipeHistoryKcal = (scale: number): TextStyle => ({
+  color: '#D9A8FF',
+  fontSize: 14 * scale,
+  fontWeight: '700',
+  marginLeft: 8 * scale,
+});
+
+const emptyRecipesWrap = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 32 * scale,
+  paddingHorizontal: 20 * scale,
+});
+
+const emptyRecipesTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 17 * scale,
+  fontWeight: '700',
+  marginTop: 12 * scale,
+});
+
+const emptyRecipesBody = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13.5 * scale,
+  textAlign: 'center',
+  marginTop: 6 * scale,
+  lineHeight: 19 * scale,
+});
+
+const emptyRecipesBtn = (scale: number): ViewStyle => ({
+  marginTop: 18 * scale,
+  borderRadius: 15 * scale,
+  overflow: 'hidden',
+  width: '100%',
+});
+
+const emptyRecipesGradient = (scale: number): ViewStyle => ({
+  height: 48 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const emptyRecipesBtnText = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 15 * scale,
   fontWeight: '700',
 });

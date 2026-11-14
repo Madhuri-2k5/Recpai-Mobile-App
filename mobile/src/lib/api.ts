@@ -85,19 +85,29 @@ export interface NutritionSummary {
   targets: Goals;
 }
 
+export interface StreakMilestone {
+  days: number;
+  name: string;
+  reward: string;
+  status: 'completed' | 'in-progress' | 'locked';
+  claimed?: boolean;
+}
+
 export interface StreakPayload {
   current: number;
   longest: number;
   totalRecipesCooked: number;
   points: number;
   week: { day: string; done: boolean; isToday: boolean }[];
-  milestones: {
-    days: number;
-    name: string;
-    reward: string;
-    status: 'completed' | 'in-progress' | 'locked';
-  }[];
+  milestones: StreakMilestone[];
   daysToNextMilestone: number;
+}
+
+export interface PostComment {
+  id: string;
+  userName: string;
+  text: string;
+  createdAt: string;
 }
 
 export interface CommunityPost {
@@ -111,8 +121,30 @@ export interface CommunityPost {
   likes: number;
   likedByMe: boolean;
   comments: number;
+  commentList?: PostComment[];
   createdAt: string;
   timeAgo: string;
+}
+
+export interface LoggedMeal {
+  recipeId?: string;
+  title: string;
+  cuisine?: string;
+  imageUrl?: string;
+  servings: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  createdAt: string;
+}
+
+export interface DailyLogPayload {
+  log: {
+    date: string;
+    meals: LoggedMeal[];
+    totals: { calories: number; protein: number; carbs: number; fat: number };
+  };
 }
 
 export interface CommunityGroup {
@@ -266,12 +298,25 @@ export const api = {
       { recipeId, servings }
     ),
 
-  nutritionSummary: () => request<NutritionSummary>('GET', '/nutrition/summary'),
+  nutritionSummary: (date?: string) =>
+    request<NutritionSummary>('GET', `/nutrition/summary${date ? `?date=${date}` : ''}`),
+
+  getMeals: (date?: string) =>
+    request<DailyLogPayload>('GET', `/meals${date ? `?date=${date}` : ''}`),
 
   streak: () => request<{ streak: StreakPayload }>('GET', '/streak'),
 
+  claimMilestone: (days: number) =>
+    request<{ streak: StreakPayload; user: any; message: string }>('POST', '/streak/claim', { days }),
+
   posts: (groupId?: string) =>
     request<{ posts: CommunityPost[] }>('GET', `/community/posts${groupId ? `?groupId=${groupId}` : ''}`),
+
+  createPost: (data: { text?: string; recipeId?: string; groupId?: string; image?: string }) =>
+    request<{ post: CommunityPost }>('POST', '/community/posts', data),
+
+  addComment: (postId: string, text: string) =>
+    request<{ comments: number; comment: PostComment }>('POST', `/community/posts/${postId}/comments`, { text }),
 
   likePost: (id: string) =>
     request<{ likes: number; likedByMe: boolean }>('POST', `/community/posts/${id}/like`, {}),
@@ -281,8 +326,8 @@ export const api = {
 
   groups: () => request<{ groups: CommunityGroup[] }>('GET', '/community/groups'),
 
-  shareToGroup: (groupId: string, recipeId: string) =>
-    request<{ post: CommunityPost }>('POST', `/community/groups/${groupId}/share`, { recipeId }),
+  shareToGroup: (groupId: string, recipeId: string, text?: string) =>
+    request<{ post: CommunityPost }>('POST', `/community/groups/${groupId}/share`, { recipeId, text }),
 
   challenges: () => request<{ challenges: CommunityChallenge[] }>('GET', '/community/challenges'),
 
@@ -298,4 +343,6 @@ export const api = {
 
   purchase: (plan: 'monthly' | 'yearly') =>
     request<{ subscription: Subscription; points: number }>('POST', '/subscription/purchase', { plan }),
+
+  cancelSubscription: () => request<{ subscription: Subscription }>('POST', '/subscription/cancel'),
 };

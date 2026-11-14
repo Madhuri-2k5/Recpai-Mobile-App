@@ -20,6 +20,10 @@ export const scanFlow: {
   recipe: null,
 };
 
+export function setScanFlow(updates: Partial<typeof scanFlow>) {
+  Object.assign(scanFlow, updates);
+}
+
 export function resetScanFlow() {
   scanFlow.imageBase64 = null;
   scanFlow.imageUri = null;

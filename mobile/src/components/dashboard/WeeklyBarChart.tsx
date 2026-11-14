@@ -60,7 +60,9 @@ export function WeeklyBarChart({ series, width, height, scale }: WeeklyBarChartP
         );
       })}
       {series.values.map((value, index) => {
-        const barHeight = (value / series.max) * plotHeight;
+        const rawHeight = (value / Math.max(1, series.max)) * plotHeight;
+        const barHeight = value > 0 ? Math.max(3 * scale, Math.min(plotHeight, rawHeight)) : 0;
+        if (barHeight <= 0) return null;
         const x = yAxisWidth + slot * index + (slot - barWidth) / 2;
         const y = topPad + plotHeight - barHeight;
         const r = Math.min(radius, barHeight);
@@ -76,7 +78,7 @@ export function WeeklyBarChart({ series, width, height, scale }: WeeklyBarChartP
         ].join(' ');
         return (
           <Path
-            key={`bar-${WEEK_DAYS[index]}`}
+            key={`bar-${series.labels?.[index] ?? WEEK_DAYS[index]}-${index}`}
             d={path}
             fill="url(#weekly-bar)"
           />

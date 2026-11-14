@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { isMongoActive } from '../config/db.js';
+import { createModelProxy, createStoreModel } from '../lib/storage.js';
 
 const commentSchema = new mongoose.Schema(
   {
@@ -22,4 +24,14 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Post = mongoose.model('Post', postSchema);
+const MongoosePost = mongoose.model('Post', postSchema);
+const StorePost = createStoreModel('posts', {
+  group: null,
+  recipe: null,
+  text: '',
+  image: '',
+  likes: [],
+  comments: [],
+});
+
+export const Post = createModelProxy(MongoosePost, StorePost, isMongoActive);

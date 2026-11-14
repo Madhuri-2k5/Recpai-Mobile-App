@@ -5,6 +5,7 @@ import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
 
 import { CalendarIcon, ChevronRightIcon } from './icons';
+import { ChevronLeftIcon } from '@/components/icons';
 
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
@@ -37,15 +38,35 @@ export function DateSelector({ date, onChange }: DateSelectorProps) {
   const [pickerVisible, setPickerVisible] = useState(false);
   const today = useMemo(() => new Date(), []);
 
+  function stepDay(delta: number) {
+    const next = new Date(date);
+    next.setDate(next.getDate() + delta);
+    onChange(next);
+  }
+
   return (
     <>
-      <Pressable
-        onPress={() => setPickerVisible(true)}
-        style={({ pressed }) => [selector(scale), pressed && styles.pressed]}>
-        <CalendarIcon size={22 * scale} />
-        <Text style={label(scale)}>{formatLabel(date, today)}</Text>
-        <ChevronRightIcon size={18 * scale} color="#C9D2E4" />
-      </Pressable>
+      <View style={selectorRow(scale)}>
+        <Pressable
+          onPress={() => stepDay(-1)}
+          hitSlop={8}
+          style={({ pressed }) => [arrowStepButton(scale), pressed && styles.pressed]}>
+          <ChevronLeftIcon size={18 * scale} color="#BAC7DB" />
+        </Pressable>
+        <Pressable
+          onPress={() => setPickerVisible(true)}
+          style={({ pressed }) => [selector(scale), pressed && styles.pressed]}>
+          <CalendarIcon size={20 * scale} />
+          <Text style={label(scale)}>{formatLabel(date, today)}</Text>
+          <ChevronRightIcon size={16 * scale} color="#C9D2E4" />
+        </Pressable>
+        <Pressable
+          onPress={() => stepDay(1)}
+          hitSlop={8}
+          style={({ pressed }) => [arrowStepButton(scale), pressed && styles.pressed]}>
+          <ChevronRightIcon size={18 * scale} color="#BAC7DB" />
+        </Pressable>
+      </View>
       <DatePickerModal
         visible={pickerVisible}
         selected={date}
@@ -144,18 +165,40 @@ function DatePickerModal({ visible, selected, today, onSelect, onDismiss }: Date
   );
 }
 
-function selector(scale: number): ViewStyle {
+function selectorRow(scale: number): ViewStyle {
   return {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 62 * scale,
-    borderRadius: 17 * scale,
+    marginTop: 18 * scale,
+    marginHorizontal: 26 * scale,
+  };
+}
+
+function arrowStepButton(scale: number): ViewStyle {
+  return {
+    width: 44 * scale,
+    height: 60 * scale,
+    borderRadius: 15 * scale,
+    backgroundColor: NutriColors.card,
+    borderWidth: 1.3,
+    borderColor: 'rgba(22, 139, 255, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+}
+
+function selector(scale: number): ViewStyle {
+  return {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 60 * scale,
+    borderRadius: 15 * scale,
     backgroundColor: NutriColors.card,
     borderWidth: 1.3,
     borderColor: 'rgba(22, 139, 255, 0.55)',
-    paddingHorizontal: 18 * scale,
-    marginTop: 18 * scale,
-    marginHorizontal: 26 * scale,
+    paddingHorizontal: 16 * scale,
+    marginHorizontal: 8 * scale,
   };
 }
 

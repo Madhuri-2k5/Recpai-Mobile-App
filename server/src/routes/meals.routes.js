@@ -25,8 +25,10 @@ router.post('/log', requireAuth, async (req, res) => {
   const multiplier = portions / (recipe.servings || 1);
 
   const meal = {
-    recipeId: recipe.id,
+    recipeId: recipe.id || recipe._id,
     title: recipe.title,
+    cuisine: recipe.cuisine || 'Balanced',
+    imageUrl: recipe.imageUrl || '',
     servings: portions,
     calories: Math.round((recipe.nutrition?.calories || 0) * multiplier),
     protein: Math.round((recipe.nutrition?.protein || 0) * multiplier),
@@ -52,12 +54,19 @@ router.post('/log', requireAuth, async (req, res) => {
 });
 
 router.get('/', requireAuth, async (req, res) => {
-  const dateString = typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date)
-    ? req.query.date
-    : todayDateString();
+  const dateString =
+    typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date)
+      ? req.query.date
+      : todayDateString();
 
   const log = await DailyLog.findOne({ userId: req.userId, date: dateString });
-  return res.json({ log: log || { date: dateString, meals: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } } });
+  return res.json({
+    log: log || {
+      date: dateString,
+      meals: [],
+      totals: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+    },
+  });
 });
 
 export default router;

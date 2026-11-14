@@ -115,7 +115,7 @@ router.get('/stats', requireAuth, async (req, res) => {
   const Recipe = (await import('../models/Recipe.js')).Recipe;
   const recipesCount = await Recipe.countDocuments({ userId: user.id });
   const groupsCount = await (await import('../models/Group.js')).Group.countDocuments({
-    members: new mongoose.Types.ObjectId(req.userId),
+    members: req.userId,
   });
 
   return res.json({

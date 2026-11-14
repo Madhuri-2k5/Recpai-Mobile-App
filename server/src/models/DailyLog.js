@@ -1,9 +1,13 @@
 import mongoose from 'mongoose';
+import { isMongoActive } from '../config/db.js';
+import { createModelProxy, createStoreModel } from '../lib/storage.js';
 
 const mealSchema = new mongoose.Schema(
   {
     recipeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
     title: { type: String, default: '' },
+    cuisine: { type: String, default: '' },
+    imageUrl: { type: String, default: '' },
     servings: { type: Number, default: 1 },
     calories: { type: Number, default: 0 },
     protein: { type: Number, default: 0 },
@@ -26,12 +30,12 @@ const dailyLogSchema = new mongoose.Schema(
 dailyLogSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 dailyLogSchema.virtual('totals').get(function () {
-  return this.meals.reduce(
+  return (this.meals || []).reduce(
     (acc, meal) => ({
-      calories: acc.calories + meal.calories,
-      protein: acc.protein + meal.protein,
-      carbs: acc.carbs + meal.carbs,
-      fat: acc.fat + meal.fat,
+      calories: acc.calories + (meal.calories || 0),
+      protein: acc.protein + (meal.protein || 0),
+      carbs: acc.carbs + (meal.carbs || 0),
+      fat: acc.fat + (meal.fat || 0),
     }),
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
@@ -39,4 +43,9 @@ dailyLogSchema.virtual('totals').get(function () {
 
 dailyLogSchema.set('toJSON', { virtuals: true });
 
-export const DailyLog = mongoose.model('DailyLog', dailyLogSchema);
+const MongooseDailyLog = mongoose.model('DailyLog', dailyLogSchema);
+const StoreDailyLog = createStoreModel('dailyLogs', {
+  meals: [],
+});
+
+export const DailyLog = createModelProxy(MongooseDailyLog, StoreDailyLog, isMongoActive);

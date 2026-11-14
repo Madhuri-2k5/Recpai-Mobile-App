@@ -39,9 +39,17 @@ async function serializePosts(posts, viewerId) {
             kcal: post.recipe.nutrition?.calories || 0,
           }
         : null,
-      likes: post.likes.length,
-      likedByMe: post.likes.some((like) => String(like) === String(viewerId)),
-      comments: post.comments.length,
+      likes: post.likes ? post.likes.length : 0,
+      likedByMe: Array.isArray(post.likes) && post.likes.some((like) => String(like) === String(viewerId)),
+      comments: Array.isArray(post.comments) ? post.comments.length : 0,
+      commentList: Array.isArray(post.comments)
+        ? post.comments.map((c) => ({
+            id: String(c._id || c.id || Math.random()),
+            userName: c.userName || (typeof c.user === 'object' && c.user?.name) || 'Community Member',
+            text: c.text || '',
+            createdAt: c.createdAt,
+          }))
+        : [],
       createdAt: post.createdAt,
       timeAgo: timeAgo(post.createdAt),
     };
@@ -93,13 +101,12 @@ router.post('/posts/:id/like', requireAuth, async (req, res) => {
     return res.status(404).json({ message: 'Post not found.' });
   }
 
-  const viewerId = new mongoose.Types.ObjectId(req.userId);
   const liked = post.likes.some((like) => String(like) === String(req.userId));
 
   if (liked) {
     post.likes = post.likes.filter((like) => String(like) !== String(req.userId));
   } else {
-    post.likes.push(viewerId);
+    post.likes.push(req.userId);
   }
   await post.save();
 
@@ -112,16 +119,24 @@ router.post('/posts/:id/comments', requireAuth, async (req, res) => {
     return res.status(400).json({ message: 'Comment text is required.' });
   }
 
+  const user = await User.findById(req.userId);
+  const commentObj = {
+    user: req.userId,
+    userName: user?.name || 'Chef',
+    text: String(text).trim(),
+    createdAt: new Date(),
+  };
+
   const post = await Post.findByIdAndUpdate(
     req.params.id,
-    { $push: { comments: { user: req.userId, text: String(text).trim() } } },
+    { $push: { comments: commentObj } },
     { new: true }
   );
   if (!post) {
     return res.status(404).json({ message: 'Post not found.' });
   }
 
-  return res.status(201).json({ comments: post.comments.length });
+  return res.status(201).json({ comments: post.comments.length, comment: commentObj });
 });
 
 router.get('/groups', requireAuth, async (req, res) => {
@@ -176,14 +191,23 @@ router.post('/groups', requireAuth, async (req, res) => {
 router.post('/groups/:id/share', requireAuth, async (req, res) => {
   const { recipeId, text } = req.body || {};
 
+  if (!recipeId || typeof recipeId !== 'string' || !recipeId.trim()) {
+    return res.status(400).json({ message: 'recipeId is required.' });
+  }
+
+  if (!mongoose.isValidObjectId(recipeId)) {
+    return res.status(400).json({ message: 'Invalid recipeId.' });
+  }
+
   const group = await Group.findOne({ _id: req.params.id, members: req.userId });
   if (!group) {
     return res.status(404).json({ message: 'Group not found.' });
   }
 
+  // Security: only allow sharing recipes the requesting user owns.
   const recipe = await Recipe.findOne({ _id: recipeId, userId: req.userId });
   if (!recipe) {
-    return res.status(404).json({ message: 'Recipe not found.' });
+    return res.status(404).json({ message: 'Recipe not found or you do not own it.' });
   }
 
   const post = await Post.create({

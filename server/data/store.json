@@ -1,0 +1,1881 @@
+{
+  "users": [
+    {
+      "goals": {
+        "calories": 2000,
+        "protein": 120,
+        "carbs": 250,
+        "fat": 70
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 5,
+        "longest": 12,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 450,
+      "totalRecipesCooked": 14,
+      "joinedChallenges": [],
+      "claimedMilestones": [],
+      "name": "HealthyFoodie",
+      "email": "healthyfoodie@demo.recpai",
+      "passwordHash": "$2b$10$W7M6Ys9oSEAPLdIvI7e1EOSbwF6CcBd0lxYf0TCxuo16c9XcaO7Lu",
+      "_id": "868482b96fa091c89e4a6aee",
+      "id": "868482b96fa091c89e4a6aee",
+      "createdAt": "2026-11-13T11:09:27.422Z",
+      "updatedAt": "2026-11-13T11:09:27.422Z"
+    },
+    {
+      "goals": {
+        "calories": 2000,
+        "protein": 120,
+        "carbs": 250,
+        "fat": 70
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 5,
+        "longest": 12,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 450,
+      "totalRecipesCooked": 14,
+      "joinedChallenges": [],
+      "claimedMilestones": [],
+      "name": "FitChefAnna",
+      "email": "fitchefanna@demo.recpai",
+      "passwordHash": "$2b$10$W7M6Ys9oSEAPLdIvI7e1EOSbwF6CcBd0lxYf0TCxuo16c9XcaO7Lu",
+      "_id": "0862f9f3f310b2ca7d5e5f0c",
+      "id": "0862f9f3f310b2ca7d5e5f0c",
+      "createdAt": "2026-11-13T11:09:27.426Z",
+      "updatedAt": "2026-11-13T11:09:27.426Z"
+    },
+    {
+      "goals": {
+        "calories": 2000,
+        "protein": 120,
+        "carbs": 250,
+        "fat": 70
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 5,
+        "longest": 12,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 450,
+      "totalRecipesCooked": 14,
+      "joinedChallenges": [],
+      "claimedMilestones": [],
+      "name": "MealPrepMax",
+      "email": "mealprepmax@demo.recpai",
+      "passwordHash": "$2b$10$W7M6Ys9oSEAPLdIvI7e1EOSbwF6CcBd0lxYf0TCxuo16c9XcaO7Lu",
+      "_id": "7c541de4f82983f22fc2df57",
+      "id": "7c541de4f82983f22fc2df57",
+      "createdAt": "2026-11-13T11:09:27.434Z",
+      "updatedAt": "2026-11-13T11:09:27.434Z"
+    },
+    {
+      "goals": {
+        "calories": 2000,
+        "protein": 120,
+        "carbs": 250,
+        "fat": 70
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 0,
+        "longest": 0,
+        "lastActiveDate": ""
+      },
+      "points": 0,
+      "totalRecipesCooked": 0,
+      "joinedChallenges": [],
+      "claimedMilestones": [],
+      "name": "Chef Tester",
+      "email": "tester_1794570871355@example.com",
+      "passwordHash": "$2b$10$pzPPDAuUT2JXT/H7yT2B8.KNmLadz6Xnk.6/qvtUopzmvOAwfOkv.",
+      "_id": "25b9df7a86733a46174ad369",
+      "id": "25b9df7a86733a46174ad369",
+      "createdAt": "2026-11-13T11:54:31.513Z",
+      "updatedAt": "2026-11-13T11:54:31.513Z"
+    },
+    {
+      "goals": {
+        "calories": 2000,
+        "protein": 120,
+        "carbs": 250,
+        "fat": 70
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 0,
+        "longest": 0,
+        "lastActiveDate": ""
+      },
+      "points": 0,
+      "totalRecipesCooked": 0,
+      "joinedChallenges": [],
+      "claimedMilestones": [],
+      "name": "Chef Tester",
+      "email": "tester_1794570990582@example.com",
+      "passwordHash": "$2b$10$96C6bDjcJBBZNzL41yDmIetCpronr5xu6cwJdiRYhlaUnQ65TwRT6",
+      "_id": "81f18d331e813feebae4ee4b",
+      "id": "81f18d331e813feebae4ee4b",
+      "createdAt": "2026-11-13T11:56:30.730Z",
+      "updatedAt": "2026-11-13T11:56:30.730Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 1,
+        "longest": 1,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 125,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [],
+      "name": "Chef Tester",
+      "email": "tester_1794571075196@example.com",
+      "passwordHash": "$2b$10$FLXF.1Od4CU7O5nbRWnMcOKWMKt6e4qIl/l17/qc17wIHXnS2KA/e",
+      "_id": "20c4513ffe14c6cf08856dac",
+      "id": "20c4513ffe14c6cf08856dac",
+      "createdAt": "2026-11-13T11:57:55.334Z",
+      "updatedAt": "2026-11-13T11:57:55.552Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794571106489@example.com",
+      "passwordHash": "$2b$10$NtQd7hXOhcWwJ1inmKfeaeybbK1zwMBdUtpFrkB7zw/11ngsRz7MS",
+      "_id": "4b592177652f97534edc0ec1",
+      "id": "4b592177652f97534edc0ec1",
+      "createdAt": "2026-11-13T11:58:26.636Z",
+      "updatedAt": "2026-11-13T11:58:26.788Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794572534681@example.com",
+      "passwordHash": "$2b$10$lDrNp5xgSenwq4GgOP4uaOHqL1wUocs70auYXhWAXMYCy7ot69ZVy",
+      "_id": "255dfcc6c1703fa8d8342278",
+      "id": "255dfcc6c1703fa8d8342278",
+      "createdAt": "2026-11-13T12:22:14.893Z",
+      "updatedAt": "2026-11-13T12:22:15.090Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794573765324@example.com",
+      "passwordHash": "$2b$10$e5uevHIg0S3YXNzW4JgFvufMvvMq8SruVf5Tfcr9YnwR9UUJKSeJi",
+      "_id": "ecb50d90dedae77d9ac34151",
+      "id": "ecb50d90dedae77d9ac34151",
+      "createdAt": "2026-11-13T12:42:45.464Z",
+      "updatedAt": "2026-11-13T12:42:45.649Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794573801698@example.com",
+      "passwordHash": "$2b$10$n77M6HmCadMNGC9ySiNKVeATk4MaZgUfrDTPKPerleBAZVfjQ1GBe",
+      "_id": "25af0337532ca99cc6136b61",
+      "id": "25af0337532ca99cc6136b61",
+      "createdAt": "2026-11-13T12:43:21.841Z",
+      "updatedAt": "2026-11-13T12:43:21.992Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794573837922@example.com",
+      "passwordHash": "$2b$10$OEsHm9FG/vKPM/SplkPXJOdvpVJx52ipO5R3Khx3Rqx25/pnpq.G.",
+      "_id": "54090369f675d30aeb2e4092",
+      "id": "54090369f675d30aeb2e4092",
+      "createdAt": "2026-11-13T12:43:58.066Z",
+      "updatedAt": "2026-11-13T12:43:58.216Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794576297395@example.com",
+      "passwordHash": "$2b$10$iNi8QqDqX4cZqGkGxCDn9ePzBlDmgT3ElmzsvCq3xKV7eS1XLNjke",
+      "_id": "425b8e20e5693fbddcabeef7",
+      "id": "425b8e20e5693fbddcabeef7",
+      "createdAt": "2026-11-13T13:24:57.752Z",
+      "updatedAt": "2026-11-13T13:24:58.485Z"
+    },
+    {
+      "goals": {
+        "calories": 2200,
+        "protein": 150,
+        "carbs": 220,
+        "fat": 65
+      },
+      "subscription": {
+        "plan": "free"
+      },
+      "streak": {
+        "current": 7,
+        "longest": 7,
+        "lastActiveDate": "2026-11-13"
+      },
+      "points": 325,
+      "totalRecipesCooked": 1,
+      "joinedChallenges": [],
+      "claimedMilestones": [
+        7
+      ],
+      "name": "Chef Tester",
+      "email": "tester_1794576520769@example.com",
+      "passwordHash": "$2b$10$UOzVuNF9UcmrKX8LU7rMPeuyiNUYHMt.TqqOHjTj2Mwtx5KEwniwS",
+      "_id": "952720d3f33addff88d2a9dd",
+      "id": "952720d3f33addff88d2a9dd",
+      "createdAt": "2026-11-13T13:28:40.941Z",
+      "updatedAt": "2026-11-13T13:28:41.194Z"
+    }
+  ],
+  "recipes": [
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "20c4513ffe14c6cf08856dac",
+      "_id": "4a7293790573348fe78a5351",
+      "id": "4a7293790573348fe78a5351",
+      "createdAt": "2026-11-13T11:57:55.369Z",
+      "updatedAt": "2026-11-13T11:57:55.369Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "4b592177652f97534edc0ec1",
+      "_id": "db024be1d6591087532998bc",
+      "id": "db024be1d6591087532998bc",
+      "createdAt": "2026-11-13T11:58:26.671Z",
+      "updatedAt": "2026-11-13T11:58:26.671Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "255dfcc6c1703fa8d8342278",
+      "_id": "727232d622aa17111a651695",
+      "id": "727232d622aa17111a651695",
+      "createdAt": "2026-11-13T12:22:14.932Z",
+      "updatedAt": "2026-11-13T12:22:14.932Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "ecb50d90dedae77d9ac34151",
+      "_id": "4d694e129a13949b5b36bd18",
+      "id": "4d694e129a13949b5b36bd18",
+      "createdAt": "2026-11-13T12:42:45.505Z",
+      "updatedAt": "2026-11-13T12:42:45.505Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "25af0337532ca99cc6136b61",
+      "_id": "c62054a669c868d37a3fcbab",
+      "id": "c62054a669c868d37a3fcbab",
+      "createdAt": "2026-11-13T12:43:21.877Z",
+      "updatedAt": "2026-11-13T12:43:21.877Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "54090369f675d30aeb2e4092",
+      "_id": "019db839a31ea293377ea52b",
+      "id": "019db839a31ea293377ea52b",
+      "createdAt": "2026-11-13T12:43:58.102Z",
+      "updatedAt": "2026-11-13T12:43:58.102Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "425b8e20e5693fbddcabeef7",
+      "_id": "38ec9a0298c038f9f6ae2ead",
+      "id": "38ec9a0298c038f9f6ae2ead",
+      "createdAt": "2026-11-13T13:24:57.850Z",
+      "updatedAt": "2026-11-13T13:24:57.850Z"
+    },
+    {
+      "category": "Main Dish",
+      "cuisine": "Indian",
+      "dietGoal": "Balanced",
+      "prepTimeMinutes": 25,
+      "difficulty": "Easy",
+      "servings": 3,
+      "ingredients": [
+        {
+          "name": "Fresh Paneer (cubed)",
+          "quantity": "450g"
+        },
+        {
+          "name": "Tri-color Bell Peppers (diced)",
+          "quantity": "3 cup"
+        },
+        {
+          "name": "Quinoa (cooked)",
+          "quantity": "2.25 cup"
+        },
+        {
+          "name": "Greek Yogurt (low-fat)",
+          "quantity": "9 tbsp"
+        },
+        {
+          "name": "Kashmiri Chili & Garam Masala",
+          "quantity": "3 tsp"
+        },
+        {
+          "name": "Fresh Cilantro & Lemon Juice",
+          "quantity": "to taste"
+        }
+      ],
+      "groceries": [
+        {
+          "name": "Paneer block",
+          "quantity": "2 packs (400g)"
+        },
+        {
+          "name": "Bell peppers mix",
+          "quantity": "1 pack (3 pcs)"
+        },
+        {
+          "name": "White quinoa",
+          "quantity": "1 pack (500g)"
+        },
+        {
+          "name": "Greek yogurt tub",
+          "quantity": "1 tub (400g)"
+        },
+        {
+          "name": "Fresh lemons & cilantro",
+          "quantity": "1 bunch"
+        }
+      ],
+      "steps": [
+        "Cube paneer and dice bell peppers into uniform 1-inch bite pieces.",
+        "Whisk yogurt with garam masala, chili powder, salt, and lemon juice into a smooth marinade.",
+        "Coat the paneer and peppers in marinade; let rest for 8 minutes.",
+        "Sear on a hot cast iron grill pan with 1 tsp olive oil for 3-4 minutes per side until lightly charred.",
+        "Fluff warm cooked quinoa and assemble the bowl with seared paneer, charred peppers, and a drizzle of lemon-herb dressing."
+      ],
+      "tips": [
+        "Press paneer with paper towels first for a crispier sear.",
+        "Add baby spinach or roasted chickpeas to increase fiber even further."
+      ],
+      "nutrition": {
+        "calories": 720,
+        "protein": 42,
+        "carbs": 69,
+        "fat": 24,
+        "fiber": 11
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+      "detectedItem": "Paneer",
+      "detectedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa",
+        "Garam Masala",
+        "Greek Yogurt"
+      ],
+      "title": "Paneer Tikka & Spiced Quinoa Bowl",
+      "summary": "A chef-crafted healthy indian recipe optimized for balanced nutrition and ease of preparation.",
+      "scanSummary": "Direct cuisine selection.",
+      "scanConfidence": 0.95,
+      "scanWarnings": [],
+      "nutritionSource": "chef-curated",
+      "nutritionMatchedItems": [
+        "Paneer",
+        "Bell Peppers",
+        "Quinoa"
+      ],
+      "userId": "952720d3f33addff88d2a9dd",
+      "_id": "c7f77378886e4f8e3e80dce2",
+      "id": "c7f77378886e4f8e3e80dce2",
+      "createdAt": "2026-11-13T13:28:40.987Z",
+      "updatedAt": "2026-11-13T13:28:40.987Z"
+    }
+  ],
+  "dailyLogs": [
+    {
+      "meals": [
+        {
+          "recipeId": "4a7293790573348fe78a5351",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T11:57:55.381Z"
+        }
+      ],
+      "userId": "20c4513ffe14c6cf08856dac",
+      "date": "2026-11-13",
+      "_id": "fe0f0239884f9f238521c5e6",
+      "id": "fe0f0239884f9f238521c5e6",
+      "createdAt": "2026-11-13T11:57:55.381Z",
+      "updatedAt": "2026-11-13T11:57:55.381Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "db024be1d6591087532998bc",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T11:58:26.685Z"
+        }
+      ],
+      "userId": "4b592177652f97534edc0ec1",
+      "date": "2026-11-13",
+      "_id": "b3a8466da9b74092d2447790",
+      "id": "b3a8466da9b74092d2447790",
+      "createdAt": "2026-11-13T11:58:26.685Z",
+      "updatedAt": "2026-11-13T11:58:26.685Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "727232d622aa17111a651695",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T12:22:14.947Z"
+        }
+      ],
+      "userId": "255dfcc6c1703fa8d8342278",
+      "date": "2026-11-13",
+      "_id": "cecb0fec84565ca101ac8896",
+      "id": "cecb0fec84565ca101ac8896",
+      "createdAt": "2026-11-13T12:22:14.947Z",
+      "updatedAt": "2026-11-13T12:22:14.947Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "4d694e129a13949b5b36bd18",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T12:42:45.516Z"
+        }
+      ],
+      "userId": "ecb50d90dedae77d9ac34151",
+      "date": "2026-11-13",
+      "_id": "690da3506f1846baa529bb46",
+      "id": "690da3506f1846baa529bb46",
+      "createdAt": "2026-11-13T12:42:45.516Z",
+      "updatedAt": "2026-11-13T12:42:45.516Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "c62054a669c868d37a3fcbab",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T12:43:21.886Z"
+        }
+      ],
+      "userId": "25af0337532ca99cc6136b61",
+      "date": "2026-11-13",
+      "_id": "c1c9c3a4763b159bd52470c5",
+      "id": "c1c9c3a4763b159bd52470c5",
+      "createdAt": "2026-11-13T12:43:21.886Z",
+      "updatedAt": "2026-11-13T12:43:21.886Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "019db839a31ea293377ea52b",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T12:43:58.113Z"
+        }
+      ],
+      "userId": "54090369f675d30aeb2e4092",
+      "date": "2026-11-13",
+      "_id": "6ba079ffe7c74f769329b03e",
+      "id": "6ba079ffe7c74f769329b03e",
+      "createdAt": "2026-11-13T12:43:58.113Z",
+      "updatedAt": "2026-11-13T12:43:58.113Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "38ec9a0298c038f9f6ae2ead",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T13:24:57.928Z"
+        }
+      ],
+      "userId": "425b8e20e5693fbddcabeef7",
+      "date": "2026-11-13",
+      "_id": "de195160f96e45a31085c06f",
+      "id": "de195160f96e45a31085c06f",
+      "createdAt": "2026-11-13T13:24:57.962Z",
+      "updatedAt": "2026-11-13T13:24:57.962Z"
+    },
+    {
+      "meals": [
+        {
+          "recipeId": "c7f77378886e4f8e3e80dce2",
+          "title": "Paneer Tikka & Spiced Quinoa Bowl",
+          "cuisine": "Indian",
+          "imageUrl": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80",
+          "servings": 4,
+          "calories": 960,
+          "protein": 56,
+          "carbs": 92,
+          "fat": 32,
+          "createdAt": "2026-11-13T13:28:41.009Z"
+        }
+      ],
+      "userId": "952720d3f33addff88d2a9dd",
+      "date": "2026-11-13",
+      "_id": "47fb63e21393a8d5f0b15549",
+      "id": "47fb63e21393a8d5f0b15549",
+      "createdAt": "2026-11-13T13:28:41.010Z",
+      "updatedAt": "2026-11-13T13:28:41.010Z"
+    }
+  ],
+  "posts": [
+    {
+      "group": null,
+      "recipe": null,
+      "text": "Loving this high-protein breakfast!\n5 ingredients, 15 minutes and 32g of protein 💜",
+      "image": "",
+      "likes": [],
+      "comments": [],
+      "user": "868482b96fa091c89e4a6aee",
+      "_id": "859d38a4a429661c8f4a2b5d",
+      "id": "859d38a4a429661c8f4a2b5d",
+      "createdAt": "2026-11-13T11:09:27.436Z",
+      "updatedAt": "2026-11-13T11:09:27.436Z"
+    },
+    {
+      "group": null,
+      "recipe": null,
+      "text": "Just completed the 7-day healthy cooking challenge! Feeling amazing 🙌",
+      "image": "",
+      "likes": [],
+      "comments": [],
+      "user": "0862f9f3f310b2ca7d5e5f0c",
+      "_id": "61739894057c61d6f7323326",
+      "id": "61739894057c61d6f7323326",
+      "createdAt": "2026-11-13T11:09:27.438Z",
+      "updatedAt": "2026-11-13T11:09:27.438Z"
+    },
+    {
+      "group": null,
+      "recipe": null,
+      "text": "Sunday meal prep done — 5 lunches under 500 kcal each. Scan. Cook. Repeat.",
+      "image": "",
+      "likes": [],
+      "comments": [],
+      "user": "7c541de4f82983f22fc2df57",
+      "_id": "ccc48a7d4eb188eaf61d90e8",
+      "id": "ccc48a7d4eb188eaf61d90e8",
+      "createdAt": "2026-11-13T11:09:27.443Z",
+      "updatedAt": "2026-11-13T11:09:27.443Z"
+    },
+    {
+      "group": "b8e5d16b55de4ed0390665a8",
+      "recipe": "4a7293790573348fe78a5351",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "20c4513ffe14c6cf08856dac"
+      ],
+      "comments": [
+        {
+          "user": "20c4513ffe14c6cf08856dac",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T11:57:55.536Z"
+        }
+      ],
+      "user": "20c4513ffe14c6cf08856dac",
+      "_id": "fe4c1f25151551a42ad21183",
+      "id": "fe4c1f25151551a42ad21183",
+      "createdAt": "2026-11-13T11:57:55.514Z",
+      "updatedAt": "2026-11-13T11:57:55.514Z"
+    },
+    {
+      "group": null,
+      "recipe": "4a7293790573348fe78a5351",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "20c4513ffe14c6cf08856dac"
+      ],
+      "comments": [
+        {
+          "user": "20c4513ffe14c6cf08856dac",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T11:57:55.536Z"
+        }
+      ],
+      "user": "20c4513ffe14c6cf08856dac",
+      "_id": "1ace0c4ab5294d0a408743de",
+      "id": "1ace0c4ab5294d0a408743de",
+      "createdAt": "2026-11-13T11:57:55.521Z",
+      "updatedAt": "2026-11-13T11:57:55.536Z"
+    },
+    {
+      "group": "ae3725ab858491f3a17a8915",
+      "recipe": "db024be1d6591087532998bc",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "4b592177652f97534edc0ec1"
+      ],
+      "comments": [
+        {
+          "user": "4b592177652f97534edc0ec1",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T11:58:26.772Z"
+        }
+      ],
+      "user": "4b592177652f97534edc0ec1",
+      "_id": "7e2962b5694f2d6c5a7a7c9a",
+      "id": "7e2962b5694f2d6c5a7a7c9a",
+      "createdAt": "2026-11-13T11:58:26.752Z",
+      "updatedAt": "2026-11-13T11:58:26.752Z"
+    },
+    {
+      "group": null,
+      "recipe": "db024be1d6591087532998bc",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "4b592177652f97534edc0ec1"
+      ],
+      "comments": [
+        {
+          "user": "4b592177652f97534edc0ec1",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T11:58:26.772Z"
+        }
+      ],
+      "user": "4b592177652f97534edc0ec1",
+      "_id": "48b2c8f74b465ab37d67d4fd",
+      "id": "48b2c8f74b465ab37d67d4fd",
+      "createdAt": "2026-11-13T11:58:26.759Z",
+      "updatedAt": "2026-11-13T11:58:26.773Z"
+    },
+    {
+      "group": "bba7e47c290ab126658ff9ee",
+      "recipe": "727232d622aa17111a651695",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "255dfcc6c1703fa8d8342278"
+      ],
+      "comments": [
+        {
+          "user": "255dfcc6c1703fa8d8342278",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:22:15.074Z"
+        }
+      ],
+      "user": "255dfcc6c1703fa8d8342278",
+      "_id": "6e2a5045e94fe5c563c43fc9",
+      "id": "6e2a5045e94fe5c563c43fc9",
+      "createdAt": "2026-11-13T12:22:15.057Z",
+      "updatedAt": "2026-11-13T12:22:15.057Z"
+    },
+    {
+      "group": null,
+      "recipe": "727232d622aa17111a651695",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "255dfcc6c1703fa8d8342278"
+      ],
+      "comments": [
+        {
+          "user": "255dfcc6c1703fa8d8342278",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:22:15.074Z"
+        }
+      ],
+      "user": "255dfcc6c1703fa8d8342278",
+      "_id": "d8868ca457809bd946fa9f93",
+      "id": "d8868ca457809bd946fa9f93",
+      "createdAt": "2026-11-13T12:22:15.064Z",
+      "updatedAt": "2026-11-13T12:22:15.075Z"
+    },
+    {
+      "group": "8b8680838b41554b7b01bcf7",
+      "recipe": "4d694e129a13949b5b36bd18",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "ecb50d90dedae77d9ac34151"
+      ],
+      "comments": [
+        {
+          "user": "ecb50d90dedae77d9ac34151",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:42:45.636Z"
+        }
+      ],
+      "user": "ecb50d90dedae77d9ac34151",
+      "_id": "e799562f707a0bd93777b941",
+      "id": "e799562f707a0bd93777b941",
+      "createdAt": "2026-11-13T12:42:45.622Z",
+      "updatedAt": "2026-11-13T12:42:45.622Z"
+    },
+    {
+      "group": null,
+      "recipe": "4d694e129a13949b5b36bd18",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "ecb50d90dedae77d9ac34151"
+      ],
+      "comments": [
+        {
+          "user": "ecb50d90dedae77d9ac34151",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:42:45.636Z"
+        }
+      ],
+      "user": "ecb50d90dedae77d9ac34151",
+      "_id": "328d62ebab49bf5df3efecd4",
+      "id": "328d62ebab49bf5df3efecd4",
+      "createdAt": "2026-11-13T12:42:45.627Z",
+      "updatedAt": "2026-11-13T12:42:45.636Z"
+    },
+    {
+      "group": "e17c7e84ee10b9b4bc4d1f66",
+      "recipe": "c62054a669c868d37a3fcbab",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "25af0337532ca99cc6136b61"
+      ],
+      "comments": [
+        {
+          "user": "25af0337532ca99cc6136b61",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:43:21.975Z"
+        }
+      ],
+      "user": "25af0337532ca99cc6136b61",
+      "_id": "305c6ac44c9b2d8117cbaad6",
+      "id": "305c6ac44c9b2d8117cbaad6",
+      "createdAt": "2026-11-13T12:43:21.955Z",
+      "updatedAt": "2026-11-13T12:43:21.955Z"
+    },
+    {
+      "group": null,
+      "recipe": "c62054a669c868d37a3fcbab",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "25af0337532ca99cc6136b61"
+      ],
+      "comments": [
+        {
+          "user": "25af0337532ca99cc6136b61",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:43:21.975Z"
+        }
+      ],
+      "user": "25af0337532ca99cc6136b61",
+      "_id": "3c02ecce97e967786e8b998a",
+      "id": "3c02ecce97e967786e8b998a",
+      "createdAt": "2026-11-13T12:43:21.961Z",
+      "updatedAt": "2026-11-13T12:43:21.975Z"
+    },
+    {
+      "group": "2f1808b7ba014c0cf50f06c0",
+      "recipe": "019db839a31ea293377ea52b",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "54090369f675d30aeb2e4092"
+      ],
+      "comments": [
+        {
+          "user": "54090369f675d30aeb2e4092",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:43:58.202Z"
+        }
+      ],
+      "user": "54090369f675d30aeb2e4092",
+      "_id": "78d6b26fcfb8e4845b8143d9",
+      "id": "78d6b26fcfb8e4845b8143d9",
+      "createdAt": "2026-11-13T12:43:58.181Z",
+      "updatedAt": "2026-11-13T12:43:58.181Z"
+    },
+    {
+      "group": null,
+      "recipe": "019db839a31ea293377ea52b",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "54090369f675d30aeb2e4092"
+      ],
+      "comments": [
+        {
+          "user": "54090369f675d30aeb2e4092",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T12:43:58.202Z"
+        }
+      ],
+      "user": "54090369f675d30aeb2e4092",
+      "_id": "d483088150f2fdbfda5c38bc",
+      "id": "d483088150f2fdbfda5c38bc",
+      "createdAt": "2026-11-13T12:43:58.186Z",
+      "updatedAt": "2026-11-13T12:43:58.202Z"
+    },
+    {
+      "group": "5590ef78dec7eb37c4c6709f",
+      "recipe": "38ec9a0298c038f9f6ae2ead",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "425b8e20e5693fbddcabeef7"
+      ],
+      "comments": [
+        {
+          "user": "425b8e20e5693fbddcabeef7",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T13:24:58.446Z"
+        }
+      ],
+      "user": "425b8e20e5693fbddcabeef7",
+      "_id": "8978e9269e6e3da7413caeac",
+      "id": "8978e9269e6e3da7413caeac",
+      "createdAt": "2026-11-13T13:24:58.399Z",
+      "updatedAt": "2026-11-13T13:24:58.399Z"
+    },
+    {
+      "group": null,
+      "recipe": "38ec9a0298c038f9f6ae2ead",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "425b8e20e5693fbddcabeef7"
+      ],
+      "comments": [
+        {
+          "user": "425b8e20e5693fbddcabeef7",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T13:24:58.446Z"
+        }
+      ],
+      "user": "425b8e20e5693fbddcabeef7",
+      "_id": "8526f6b4ebc5525fa05a739d",
+      "id": "8526f6b4ebc5525fa05a739d",
+      "createdAt": "2026-11-13T13:24:58.416Z",
+      "updatedAt": "2026-11-13T13:24:58.447Z"
+    },
+    {
+      "group": "1586b5ed25f1078199107152",
+      "recipe": "c7f77378886e4f8e3e80dce2",
+      "text": "Made this for dinner with scalable servings!",
+      "image": "",
+      "likes": [
+        "952720d3f33addff88d2a9dd"
+      ],
+      "comments": [
+        {
+          "user": "952720d3f33addff88d2a9dd",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T13:28:41.175Z"
+        }
+      ],
+      "user": "952720d3f33addff88d2a9dd",
+      "_id": "02e2497c746df3df7334a60b",
+      "id": "02e2497c746df3df7334a60b",
+      "createdAt": "2026-11-13T13:28:41.145Z",
+      "updatedAt": "2026-11-13T13:28:41.145Z"
+    },
+    {
+      "group": null,
+      "recipe": "c7f77378886e4f8e3e80dce2",
+      "text": "Excited about NutriAI 2.0!",
+      "image": "",
+      "likes": [
+        "952720d3f33addff88d2a9dd"
+      ],
+      "comments": [
+        {
+          "user": "952720d3f33addff88d2a9dd",
+          "userName": "Chef Tester",
+          "text": "Looks so healthy and delicious!",
+          "createdAt": "2026-11-13T13:28:41.175Z"
+        }
+      ],
+      "user": "952720d3f33addff88d2a9dd",
+      "_id": "2d62ba544dc7b0279893eff0",
+      "id": "2d62ba544dc7b0279893eff0",
+      "createdAt": "2026-11-13T13:28:41.152Z",
+      "updatedAt": "2026-11-13T13:28:41.175Z"
+    }
+  ],
+  "groups": [
+    {
+      "kind": "Friends",
+      "members": [
+        "868482b96fa091c89e4a6aee",
+        "0862f9f3f310b2ca7d5e5f0c",
+        "7c541de4f82983f22fc2df57"
+      ],
+      "name": "Foodies Club",
+      "owner": "868482b96fa091c89e4a6aee",
+      "_id": "2a6b9325830ce4be64a5639b",
+      "id": "2a6b9325830ce4be64a5639b",
+      "createdAt": "2026-11-13T11:09:27.445Z",
+      "updatedAt": "2026-11-13T11:09:27.445Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "20c4513ffe14c6cf08856dac"
+      ],
+      "name": "Family Chefs",
+      "owner": "20c4513ffe14c6cf08856dac",
+      "_id": "b8e5d16b55de4ed0390665a8",
+      "id": "b8e5d16b55de4ed0390665a8",
+      "createdAt": "2026-11-13T11:57:55.502Z",
+      "updatedAt": "2026-11-13T11:57:55.502Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "4b592177652f97534edc0ec1"
+      ],
+      "name": "Family Chefs",
+      "owner": "4b592177652f97534edc0ec1",
+      "_id": "ae3725ab858491f3a17a8915",
+      "id": "ae3725ab858491f3a17a8915",
+      "createdAt": "2026-11-13T11:58:26.746Z",
+      "updatedAt": "2026-11-13T11:58:26.746Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "255dfcc6c1703fa8d8342278"
+      ],
+      "name": "Family Chefs",
+      "owner": "255dfcc6c1703fa8d8342278",
+      "_id": "bba7e47c290ab126658ff9ee",
+      "id": "bba7e47c290ab126658ff9ee",
+      "createdAt": "2026-11-13T12:22:15.049Z",
+      "updatedAt": "2026-11-13T12:22:15.049Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "ecb50d90dedae77d9ac34151"
+      ],
+      "name": "Family Chefs",
+      "owner": "ecb50d90dedae77d9ac34151",
+      "_id": "8b8680838b41554b7b01bcf7",
+      "id": "8b8680838b41554b7b01bcf7",
+      "createdAt": "2026-11-13T12:42:45.616Z",
+      "updatedAt": "2026-11-13T12:42:45.616Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "25af0337532ca99cc6136b61"
+      ],
+      "name": "Family Chefs",
+      "owner": "25af0337532ca99cc6136b61",
+      "_id": "e17c7e84ee10b9b4bc4d1f66",
+      "id": "e17c7e84ee10b9b4bc4d1f66",
+      "createdAt": "2026-11-13T12:43:21.947Z",
+      "updatedAt": "2026-11-13T12:43:21.947Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "54090369f675d30aeb2e4092"
+      ],
+      "name": "Family Chefs",
+      "owner": "54090369f675d30aeb2e4092",
+      "_id": "2f1808b7ba014c0cf50f06c0",
+      "id": "2f1808b7ba014c0cf50f06c0",
+      "createdAt": "2026-11-13T12:43:58.172Z",
+      "updatedAt": "2026-11-13T12:43:58.172Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "425b8e20e5693fbddcabeef7"
+      ],
+      "name": "Family Chefs",
+      "owner": "425b8e20e5693fbddcabeef7",
+      "_id": "5590ef78dec7eb37c4c6709f",
+      "id": "5590ef78dec7eb37c4c6709f",
+      "createdAt": "2026-11-13T13:24:58.382Z",
+      "updatedAt": "2026-11-13T13:24:58.382Z"
+    },
+    {
+      "kind": "Family",
+      "members": [
+        "952720d3f33addff88d2a9dd"
+      ],
+      "name": "Family Chefs",
+      "owner": "952720d3f33addff88d2a9dd",
+      "_id": "1586b5ed25f1078199107152",
+      "id": "1586b5ed25f1078199107152",
+      "createdAt": "2026-11-13T13:28:41.130Z",
+      "updatedAt": "2026-11-13T13:28:41.130Z"
+    }
+  ],
+  "challenges": [
+    {
+      "description": "Cook one healthy home-made meal every day for a week.",
+      "reward": "Challenge badge + 200 points",
+      "key": "7-day-healthy-cooking",
+      "_id": "a72144c6ece85750db4b1721",
+      "id": "a72144c6ece85750db4b1721",
+      "createdAt": "2026-11-13T11:09:27.232Z",
+      "updatedAt": "2026-11-13T13:28:40.716Z",
+      "name": "7-Day Healthy Cooking Challenge",
+      "days": 7
+    },
+    {
+      "description": "Hit your daily protein target for 30 days straight.",
+      "reward": "Premium month + exclusive badge",
+      "key": "30-day-protein-power",
+      "_id": "22881a2a89582ae1fa05faa3",
+      "id": "22881a2a89582ae1fa05faa3",
+      "createdAt": "2026-11-13T11:09:27.238Z",
+      "updatedAt": "2026-11-13T13:28:40.722Z",
+      "name": "30-Day Protein Power",
+      "days": 30
+    },
+    {
+      "description": "Go plant-based every Monday for a month.",
+      "reward": "Recipe book discount",
+      "key": "meatless-mondays",
+      "_id": "3df8269dd72658210d7151cf",
+      "id": "3df8269dd72658210d7151cf",
+      "createdAt": "2026-11-13T11:09:27.239Z",
+      "updatedAt": "2026-11-13T13:28:40.726Z",
+      "name": "Meatless Mondays",
+      "days": 28
+    }
+  ]
+}

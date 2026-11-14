@@ -49,7 +49,13 @@ async function start() {
   });
 }
 
-start().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+export { app };
+export default app;
+
+if (process.env.NODE_ENV !== 'test') {
+  start().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
+

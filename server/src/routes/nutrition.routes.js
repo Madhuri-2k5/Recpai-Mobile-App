@@ -13,7 +13,17 @@ router.get('/summary', requireAuth, async (req, res) => {
     return res.status(404).json({ message: 'User not found.' });
   }
 
-  const dates = Array.from({ length: 7 }, (_, index) => todayDateString(index - 6));
+  const targetDateStr =
+    typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date)
+      ? req.query.date
+      : todayDateString();
+
+  const targetDate = new Date(`${targetDateStr}T12:00:00`);
+  const dates = Array.from({ length: 7 }, (_, index) => {
+    const d = new Date(targetDate);
+    d.setDate(d.getDate() - (6 - index));
+    return d.toISOString().slice(0, 10);
+  });
 
   const logs = await DailyLog.find({ userId: req.userId, date: { $in: dates } });
   const logByDate = new Map(logs.map((log) => [log.date, log]));
@@ -30,10 +40,10 @@ router.get('/summary', requireAuth, async (req, res) => {
     };
   });
 
-  const todayTotals = logByDate.get(dates[6])?.totals || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const targetTotals = logByDate.get(targetDateStr)?.totals || { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
   return res.json({
-    today: { date: dates[6], ...todayTotals },
+    today: { date: targetDateStr, ...targetTotals },
     week,
     targets: user.goals,
   });

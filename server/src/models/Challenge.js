@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { isMongoActive } from '../config/db.js';
+import { createModelProxy, createStoreModel } from '../lib/storage.js';
 
 const challengeSchema = new mongoose.Schema(
   {
@@ -11,4 +13,10 @@ const challengeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Challenge = mongoose.model('Challenge', challengeSchema);
+const MongooseChallenge = mongoose.model('Challenge', challengeSchema);
+const StoreChallenge = createStoreModel('challenges', {
+  description: '',
+  reward: '',
+});
+
+export const Challenge = createModelProxy(MongooseChallenge, StoreChallenge, isMongoActive);

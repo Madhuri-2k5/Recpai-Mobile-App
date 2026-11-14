@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { isMongoActive } from '../config/db.js';
+import { createModelProxy, createStoreModel } from '../lib/storage.js';
 
 const goalsSchema = new mongoose.Schema(
   {
@@ -49,8 +51,20 @@ const userSchema = new mongoose.Schema(
     points: { type: Number, default: 0 },
     totalRecipesCooked: { type: Number, default: 0 },
     joinedChallenges: { type: [userChallengeSchema], default: [] },
+    claimedMilestones: { type: [Number], default: [] },
   },
   { timestamps: true }
 );
 
-export const User = mongoose.model('User', userSchema);
+const MongooseUser = mongoose.model('User', userSchema);
+const StoreUser = createStoreModel('users', {
+  goals: { calories: 2000, protein: 120, carbs: 250, fat: 70 },
+  subscription: { plan: 'free' },
+  streak: { current: 0, longest: 0, lastActiveDate: '' },
+  points: 0,
+  totalRecipesCooked: 0,
+  joinedChallenges: [],
+  claimedMilestones: [],
+});
+
+export const User = createModelProxy(MongooseUser, StoreUser, isMongoActive);

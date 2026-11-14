@@ -23,11 +23,13 @@ export function CalorieProgressRing({ stat }: { stat: NutrientStat }) {
   const { scale } = useAppFrame();
   const size = 212 * scale;
   const strokeWidth = 14 * scale;
-  const progress = stat.consumed / stat.target;
+  const target = Math.max(1, stat.target || 1);
+  const consumed = Math.max(0, stat.consumed || 0);
+  const progress = Math.min(1.5, consumed / target);
   const isCalories = stat.key === 'calories';
   const segments = isCalories
     ? buildSegments(progress)
-    : [{ colors: stat.ringColors, startDeg: 0, sweepDeg: progress * 360 }];
+    : [{ colors: stat.ringColors, startDeg: 0, sweepDeg: Math.min(1, progress) * 360 }];
 
   return (
     <View style={styles.container}>

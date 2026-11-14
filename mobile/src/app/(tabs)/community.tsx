@@ -14,12 +14,13 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { NutriColors } from '@/constants/nutri';
 import { useAppFrame } from '@/hooks/use-app-frame';
 import {
   CheckCircleIcon,
+  CloseIcon,
   CommentIcon,
   HeartIcon,
   PlusIcon,
@@ -41,33 +42,52 @@ type CommunityTab = 'feed' | 'challenges' | 'groups';
 export default function CommunityScreen() {
   const { scale } = useAppFrame();
   const router = useRouter();
-  const [tab, setTab] = useState<CommunityTab>('feed');
+  const params = useLocalSearchParams<{ tab?: string; groupId?: string }>();
+  const [tab, setTab] = useState<CommunityTab>(() => {
+    if (params.tab === 'challenges' || params.tab === 'groups') return params.tab;
+    return 'feed';
+  });
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [completedChallenge, setCompletedChallenge] = useState<CommunityChallenge | null>(null);
   const [challenges, setChallenges] = useState<CommunityChallenge[]>([]);
   const [groups, setGroups] = useState<CommunityGroup[]>([]);
   const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
+  const [filterGroup, setFilterGroup] = useState<CommunityGroup | null>(null);
 
-  const [createVisible, setCreateVisible] = useState(false);
+  // Create Group Modal
+  const [createGroupVisible, setCreateGroupVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupKind, setNewGroupKind] = useState<'Friends' | 'Family'>('Friends');
-  const [creating, setCreating] = useState(false);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+
+  // Share to Group Modal
   const [shareGroup, setShareGroup] = useState<CommunityGroup | null>(null);
   const [sharing, setSharing] = useState(false);
 
-  const load = useCallback(async () => {
+  // Create Post Modal
+  const [createPostVisible, setCreatePostVisible] = useState(false);
+  const [newPostText, setNewPostText] = useState('');
+  const [selectedRecipeForPost, setSelectedRecipeForPost] = useState<Recipe | null>(null);
+  const [creatingPost, setCreatingPost] = useState(false);
+
+  // Comments Modal
+  const [activeCommentPost, setActiveCommentPost] = useState<CommunityPost | null>(null);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+
+  const load = useCallback(async (groupId?: string) => {
     setLoading(true);
     try {
       const [postsPayload, challengesPayload, groupsPayload, recipesPayload] = await Promise.all([
-        api.posts(),
+        api.posts(groupId),
         api.challenges(),
         api.groups(),
         api.myRecipes(),
       ]);
       setPosts(postsPayload.posts);
       setChallenges(challengesPayload.challenges);
-      setCompletedChallenge(challengesPayload.challenges.find((challenge) => challenge.completed) ?? null);
+      setCompletedChallenge(challengesPayload.challenges.find((c) => c.completed) ?? null);
       setGroups(groupsPayload.groups);
       setMyRecipes(recipesPayload.recipes);
     } catch {
@@ -79,8 +99,11 @@ export default function CommunityScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      load();
-    }, [load])
+      if (params.tab === 'feed' || params.tab === 'challenges' || params.tab === 'groups') {
+        setTab(params.tab as CommunityTab);
+      }
+      load(filterGroup?.id);
+    }, [load, filterGroup?.id, params.tab])
   );
 
   async function toggleLike(post: CommunityPost) {
@@ -103,16 +126,16 @@ export default function CommunityScreen() {
   }
 
   async function createGroup() {
-    if (!newGroupName.trim() || creating) return;
-    setCreating(true);
+    if (!newGroupName.trim() || creatingGroup) return;
+    setCreatingGroup(true);
     try {
       await api.createGroup(newGroupName.trim(), newGroupKind);
-      setCreateVisible(false);
+      setCreateGroupVisible(false);
       setNewGroupName('');
       setNewGroupKind('Friends');
-      await load();
+      await load(filterGroup?.id);
     } finally {
-      setCreating(false);
+      setCreatingGroup(false);
     }
   }
 
@@ -122,9 +145,49 @@ export default function CommunityScreen() {
     try {
       await api.shareToGroup(group.id, recipe._id || recipe.id || '');
       setShareGroup(null);
-      await load();
+      await load(filterGroup?.id);
     } finally {
       setSharing(false);
+    }
+  }
+
+  async function handleCreatePost() {
+    if ((!newPostText.trim() && !selectedRecipeForPost) || creatingPost) return;
+    setCreatingPost(true);
+    try {
+      await api.createPost({
+        text: newPostText.trim() || undefined,
+        recipeId: selectedRecipeForPost?._id || selectedRecipeForPost?.id || undefined,
+        groupId: filterGroup?.id || undefined,
+      });
+      setCreatePostVisible(false);
+      setNewPostText('');
+      setSelectedRecipeForPost(null);
+      await load(filterGroup?.id);
+    } finally {
+      setCreatingPost(false);
+    }
+  }
+
+  async function handleAddComment() {
+    if (!activeCommentPost || !newCommentText.trim() || submittingComment) return;
+    setSubmittingComment(true);
+    try {
+      const res = await api.addComment(activeCommentPost.id, newCommentText.trim());
+      const updatedCommentList = [...(activeCommentPost.commentList || []), res.comment];
+      const updatedPost = {
+        ...activeCommentPost,
+        comments: res.comments,
+        commentList: updatedCommentList,
+      };
+
+      setActiveCommentPost(updatedPost);
+      setPosts((current) =>
+        current.map((p) => (p.id === activeCommentPost.id ? updatedPost : p))
+      );
+      setNewCommentText('');
+    } finally {
+      setSubmittingComment(false);
     }
   }
 
@@ -146,7 +209,9 @@ export default function CommunityScreen() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 150 * scale }}>
         <Text style={title(scale)}>Community</Text>
         <Text style={subtitle(scale)}>Real people. Real food. Real progress.</Text>
 
@@ -180,6 +245,34 @@ export default function CommunityScreen() {
           </View>
         ) : tab === 'feed' ? (
           <View style={listWrap(scale)}>
+            {/* Action Bar: Create Post & Filter */}
+            <View style={feedHeaderRow(scale)}>
+              <View style={styles.feedHeadText}>
+                <Text style={feedSectionTitle(scale)}>
+                  {filterGroup ? `${filterGroup.name} Feed` : 'Community Feed'}
+                </Text>
+                {filterGroup ? (
+                  <Pressable onPress={() => setFilterGroup(null)} style={clearFilterChip(scale)}>
+                    <Text style={clearFilterText(scale)}>Clear filter (show all)</Text>
+                    <CloseIcon size={12 * scale} color="#D9A8FF" />
+                  </Pressable>
+                ) : null}
+              </View>
+
+              <Pressable
+                onPress={() => setCreatePostVisible(true)}
+                style={createPostButton(scale)}>
+                <LinearGradient
+                  colors={['#B74FF5', '#753AFF']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={createPostGradient(scale)}>
+                  <PlusIcon size={16 * scale} />
+                  <Text style={createPostButtonText(scale)}>Share</Text>
+                </LinearGradient>
+              </Pressable>
+            </View>
+
             {completedChallenge ? (
               <View style={challengeBanner(scale)}>
                 <LinearGradient
@@ -200,8 +293,32 @@ export default function CommunityScreen() {
             ) : null}
 
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} onLike={() => toggleLike(post)} scale={scale} />
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={() => toggleLike(post)}
+                onComment={() => {
+                  setActiveCommentPost(post);
+                }}
+                onSelectRecipe={(recipeId) => {
+                  router.push({
+                    pathname: '/recipe/[id]',
+                    params: { id: recipeId },
+                  });
+                }}
+                scale={scale}
+              />
             ))}
+
+            {posts.length === 0 ? (
+              <View style={emptyFeedWrap(scale)}>
+                <SparkleIcon size={32 * scale} color={NutriColors.purple} />
+                <Text style={emptyFeedTitle(scale)}>No posts yet</Text>
+                <Text style={emptyFeedSubtitle(scale)}>
+                  Be the first to share your recipe or healthy cooking progress with the community!
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : tab === 'challenges' ? (
           <View style={listWrap(scale)}>
@@ -256,7 +373,13 @@ export default function CommunityScreen() {
           <View style={listWrap(scale)}>
             <Text style={groupSectionTitle(scale)}>Your Groups</Text>
             {groups.map((group) => (
-              <View key={group.id} style={groupCard(scale)}>
+              <Pressable
+                key={group.id}
+                onPress={() => {
+                  setFilterGroup(group);
+                  setTab('feed');
+                }}
+                style={groupCard(scale)}>
                 <View style={groupAvatarWrap(scale)}>
                   <UsersIcon size={24 * scale} color={NutriColors.blue} />
                 </View>
@@ -276,10 +399,15 @@ export default function CommunityScreen() {
                     <Text style={groupMeta(scale)}>{group.sharedRecipes} recipes shared</Text>
                   </View>
                 </View>
-                <Pressable onPress={() => setShareGroup(group)} style={shareButton(scale)}>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setShareGroup(group);
+                  }}
+                  style={shareButton(scale)}>
                   <ShareIcon size={16 * scale} color="#D9A8FF" />
                 </Pressable>
-              </View>
+              </Pressable>
             ))}
 
             {groups.length === 0 ? (
@@ -288,7 +416,7 @@ export default function CommunityScreen() {
               </Text>
             ) : null}
 
-            <Pressable style={createGroupButton(scale)} onPress={() => setCreateVisible(true)}>
+            <Pressable style={createGroupButton(scale)} onPress={() => setCreateGroupVisible(true)}>
               <PlusIcon size={20 * scale} />
               <Text style={createGroupText(scale)}>Create Group</Text>
             </Pressable>
@@ -332,13 +460,14 @@ export default function CommunityScreen() {
         )}
       </ScrollView>
 
+      {/* Create Group Modal */}
       <Modal
-        visible={createVisible}
+        visible={createGroupVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setCreateVisible(false)}>
+        onRequestClose={() => setCreateGroupVisible(false)}>
         <View style={modalBackdrop}>
-          <Pressable style={styles.modalDismiss} onPress={() => setCreateVisible(false)} />
+          <Pressable style={styles.modalDismiss} onPress={() => setCreateGroupVisible(false)} />
           <View style={sheet(scale)}>
             <Text style={sheetTitle(scale)}>Create Group</Text>
             <Text style={sheetLabel(scale)}>Group name</Text>
@@ -362,13 +491,14 @@ export default function CommunityScreen() {
                 </Pressable>
               ))}
             </View>
-            <Pressable onPress={createGroup} disabled={creating} style={sheetButton(scale)}>
-              <Text style={sheetButtonText(scale)}>{creating ? 'Creating…' : 'Create Group'}</Text>
+            <Pressable onPress={createGroup} disabled={creatingGroup} style={sheetButton(scale)}>
+              <Text style={sheetButtonText(scale)}>{creatingGroup ? 'Creating…' : 'Create Group'}</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
+      {/* Share Recipe Modal */}
       <Modal
         visible={shareGroup !== null}
         transparent
@@ -398,6 +528,138 @@ export default function CommunityScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Create Community Post Modal */}
+      <Modal
+        visible={createPostVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCreatePostVisible(false)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setCreatePostVisible(false)} />
+          <View style={sheet(scale)}>
+            <View style={modalHeader(scale)}>
+              <Text style={sheetTitle(scale)}>Create Community Post</Text>
+              <Pressable onPress={() => setCreatePostVisible(false)}>
+                <CloseIcon size={20 * scale} />
+              </Pressable>
+            </View>
+
+            <Text style={sheetLabel(scale)}>Your thoughts or recipe review</Text>
+            <TextInput
+              style={[sheetInput(scale), { height: 90 * scale, textAlignVertical: 'top' }]}
+              multiline
+              placeholder="What are you cooking or eating today? Share your thoughts…"
+              placeholderTextColor={NutriColors.textFaint}
+              value={newPostText}
+              onChangeText={setNewPostText}
+            />
+
+            <Text style={sheetLabel(scale)}>Attach a recipe from your history (optional)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={attachScroll(scale)}>
+              {myRecipes.map((r) => {
+                const isSelected = (selectedRecipeForPost?._id || selectedRecipeForPost?.id) === (r._id || r.id);
+                return (
+                  <Pressable
+                    key={r._id || r.id}
+                    onPress={() => setSelectedRecipeForPost(isSelected ? null : r)}
+                    style={attachChip(isSelected, scale)}>
+                    <Text style={attachChipText(isSelected, scale)} numberOfLines={1}>
+                      {r.title}
+                    </Text>
+                    {isSelected ? <CheckCircleIcon size={14 * scale} circleColor={NutriColors.green} /> : null}
+                  </Pressable>
+                );
+              })}
+              {myRecipes.length === 0 ? (
+                <Text style={attachEmptyText(scale)}>No saved recipes yet</Text>
+              ) : null}
+            </ScrollView>
+
+            <Pressable
+              onPress={handleCreatePost}
+              disabled={creatingPost || (!newPostText.trim() && !selectedRecipeForPost)}
+              style={sheetButton(scale)}>
+              <Text style={sheetButtonText(scale)}>{creatingPost ? 'Posting…' : 'Post to Community'}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Comments Thread Modal */}
+      <Modal
+        visible={activeCommentPost !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setActiveCommentPost(null)}>
+        <View style={modalBackdrop}>
+          <Pressable style={styles.modalDismiss} onPress={() => setActiveCommentPost(null)} />
+          <View style={[sheet(scale), { maxHeight: '82%' }]}>
+            <View style={modalHeader(scale)}>
+              <Text style={sheetTitle(scale)}>
+                Comments ({activeCommentPost?.comments ?? 0})
+              </Text>
+              <Pressable onPress={() => setActiveCommentPost(null)}>
+                <CloseIcon size={20 * scale} />
+              </Pressable>
+            </View>
+
+            {activeCommentPost ? (
+              <View style={commentPostPreview(scale)}>
+                <Text style={commentPostAuthor(scale)}>{activeCommentPost.user.name}</Text>
+                <Text style={commentPostText(scale)} numberOfLines={2}>
+                  {activeCommentPost.text || activeCommentPost.recipe?.title || 'Shared recipe'}
+                </Text>
+              </View>
+            ) : null}
+
+            <ScrollView style={commentsList(scale)} showsVerticalScrollIndicator={false}>
+              {activeCommentPost?.commentList && activeCommentPost.commentList.length > 0 ? (
+                activeCommentPost.commentList.map((c) => (
+                  <View key={c.id} style={commentRow(scale)}>
+                    <View style={commentAvatar(scale)}>
+                      <Text style={commentAvatarText(scale)}>{(c.userName[0] || 'U').toUpperCase()}</Text>
+                    </View>
+                    <View style={styles.commentBody}>
+                      <View style={commentAuthorRow(scale)}>
+                        <Text style={commentAuthor(scale)}>{c.userName}</Text>
+                        <Text style={commentDate(scale)}>
+                          {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </Text>
+                      </View>
+                      <Text style={commentContent(scale)}>{c.text}</Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View style={noCommentsWrap(scale)}>
+                  <CommentIcon size={28 * scale} color={NutriColors.textFaint} />
+                  <Text style={noCommentsText(scale)}>No comments yet. Start the conversation!</Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={addCommentRow(scale)}>
+              <TextInput
+                style={addCommentInput(scale)}
+                placeholder="Write a comment…"
+                placeholderTextColor={NutriColors.textFaint}
+                value={newCommentText}
+                onChangeText={setNewCommentText}
+                onSubmitEditing={handleAddComment}
+              />
+              <Pressable
+                onPress={handleAddComment}
+                disabled={submittingComment || !newCommentText.trim()}
+                style={sendCommentBtn(scale, !newCommentText.trim())}>
+                <Text style={sendCommentBtnText(scale)}>
+                  {submittingComment ? '…' : 'Send'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -405,10 +667,14 @@ export default function CommunityScreen() {
 function PostCard({
   post,
   onLike,
+  onComment,
+  onSelectRecipe,
   scale,
 }: {
   post: CommunityPost;
   onLike: () => void;
+  onComment: () => void;
+  onSelectRecipe: (recipeId: string) => void;
   scale: number;
 }) {
   return (
@@ -429,7 +695,7 @@ function PostCard({
       {post.text ? <Text style={postText(scale)}>{post.text}</Text> : null}
 
       {post.recipe ? (
-        <View style={recipeChip(scale)}>
+        <Pressable onPress={() => onSelectRecipe(post.recipe!.id)} style={recipeChip(scale)}>
           {post.recipe.imageUrl ? (
             <Image source={{ uri: post.recipe.imageUrl }} style={recipeChipImage(scale)} contentFit="cover" />
           ) : null}
@@ -439,7 +705,7 @@ function PostCard({
             </Text>
             <Text style={recipeChipKcal(scale)}>{post.recipe.kcal} kcal</Text>
           </View>
-        </View>
+        </Pressable>
       ) : post.image ? (
         <Image source={{ uri: post.image }} style={postImage(scale)} contentFit="cover" />
       ) : null}
@@ -455,10 +721,12 @@ function PostCard({
             {post.likes.toLocaleString('en-US')}
           </Text>
         </Pressable>
-        <View style={actionItem(scale)}>
+
+        <Pressable onPress={onComment} style={actionItem(scale)}>
           <CommentIcon size={20 * scale} color={NutriColors.textDim} />
           <Text style={actionText(scale)}>{post.comments}</Text>
-        </View>
+        </Pressable>
+
         <View style={[actionItem(scale), styles.bookmarkButton]}>
           <ShareIcon size={20 * scale} color={NutriColors.textDim} />
         </View>
@@ -477,6 +745,9 @@ const styles = {
   root: {
     flex: 1,
     backgroundColor: NutriColors.bg,
+  } as ViewStyle,
+  feedHeadText: {
+    flex: 1,
   } as ViewStyle,
   segmentTextActive: {
     color: '#FFFFFF',
@@ -500,6 +771,9 @@ const styles = {
     marginLeft: 'auto',
   } as ViewStyle,
   recipeChipText: {
+    flex: 1,
+  } as ViewStyle,
+  commentBody: {
     flex: 1,
   } as ViewStyle,
   kindOptionTextActive: {
@@ -571,6 +845,51 @@ const listWrap = (scale: number): ViewStyle => ({
   marginTop: 20 * scale,
   paddingHorizontal: 26 * scale,
   paddingBottom: 150 * scale,
+});
+
+const feedHeaderRow = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12 * scale,
+});
+
+const feedSectionTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 18 * scale,
+  fontWeight: '700',
+});
+
+const clearFilterChip = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6 * scale,
+  marginTop: 4 * scale,
+});
+
+const clearFilterText = (scale: number): TextStyle => ({
+  color: '#D9A8FF',
+  fontSize: 12 * scale,
+  fontWeight: '600',
+});
+
+const createPostButton = (scale: number): ViewStyle => ({
+  borderRadius: 14 * scale,
+  overflow: 'hidden',
+});
+
+const createPostGradient = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6 * scale,
+  paddingHorizontal: 16 * scale,
+  paddingVertical: 9 * scale,
+});
+
+const createPostButtonText = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 13.5 * scale,
+  fontWeight: '700',
 });
 
 const challengeBanner = (scale: number): ViewStyle => ({
@@ -706,6 +1025,27 @@ const actionText = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
   fontSize: 13 * scale,
   fontWeight: '600',
+});
+
+const emptyFeedWrap = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 50 * scale,
+  paddingHorizontal: 20 * scale,
+  gap: 10 * scale,
+});
+
+const emptyFeedTitle = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 17 * scale,
+  fontWeight: '700',
+});
+
+const emptyFeedSubtitle = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13.5 * scale,
+  textAlign: 'center',
+  lineHeight: 20 * scale,
 });
 
 const challengeCard = (scale: number): ViewStyle => ({
@@ -960,6 +1300,13 @@ const sheet = (scale: number): ViewStyle => ({
   paddingBottom: 30 * scale,
 });
 
+const modalHeader = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 8 * scale,
+});
+
 const sheetTitle = (scale: number): TextStyle => ({
   color: '#FFFFFF',
   fontSize: 19 * scale,
@@ -970,7 +1317,7 @@ const sheetLabel = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
   fontSize: 13 * scale,
   fontWeight: '600',
-  marginTop: 16 * scale,
+  marginTop: 14 * scale,
   marginBottom: 8 * scale,
 });
 
@@ -1006,7 +1353,7 @@ const kindOptionText = (scale: number): TextStyle => ({
 });
 
 const sheetButton = (scale: number): ViewStyle => ({
-  marginTop: 22 * scale,
+  marginTop: 20 * scale,
   height: 54 * scale,
   borderRadius: 16 * scale,
   alignItems: 'center',
@@ -1044,4 +1391,154 @@ const shareRowText = (scale: number): TextStyle => ({
 const shareRowKcal = (scale: number): TextStyle => ({
   color: NutriColors.textDim,
   fontSize: 13 * scale,
+});
+
+const attachScroll = (scale: number): ViewStyle => ({
+  maxHeight: 52 * scale,
+  marginBottom: 6 * scale,
+});
+
+const attachChip = (selected: boolean, scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6 * scale,
+  paddingHorizontal: 14 * scale,
+  paddingVertical: 10 * scale,
+  borderRadius: 12 * scale,
+  backgroundColor: selected ? 'rgba(183, 79, 245, 0.22)' : NutriColors.input,
+  borderWidth: 1,
+  borderColor: selected ? NutriColors.purple : NutriColors.borderMuted,
+  marginRight: 8 * scale,
+});
+
+const attachChipText = (selected: boolean, scale: number): TextStyle => ({
+  color: selected ? '#FFFFFF' : NutriColors.textDim,
+  fontSize: 13 * scale,
+  fontWeight: selected ? '700' : '500',
+  maxWidth: 160 * scale,
+});
+
+const attachEmptyText = (scale: number): TextStyle => ({
+  color: NutriColors.textFaint,
+  fontSize: 12.5 * scale,
+  fontStyle: 'italic',
+  paddingVertical: 8 * scale,
+});
+
+const commentPostPreview = (scale: number): ViewStyle => ({
+  padding: 12 * scale,
+  borderRadius: 14 * scale,
+  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+  marginBottom: 14 * scale,
+});
+
+const commentPostAuthor = (scale: number): TextStyle => ({
+  color: '#8FB8FF',
+  fontSize: 13 * scale,
+  fontWeight: '700',
+});
+
+const commentPostText = (scale: number): TextStyle => ({
+  color: '#DDE3F0',
+  fontSize: 13 * scale,
+  marginTop: 3 * scale,
+});
+
+const commentsList = (scale: number): ViewStyle => ({
+  maxHeight: 280 * scale,
+});
+
+const commentRow = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  gap: 10 * scale,
+  paddingVertical: 10 * scale,
+  borderBottomWidth: 1,
+  borderBottomColor: NutriColors.divider,
+});
+
+const commentAvatar = (scale: number): ViewStyle => ({
+  width: 34 * scale,
+  height: 34 * scale,
+  borderRadius: 17 * scale,
+  backgroundColor: 'rgba(183, 79, 245, 0.16)',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const commentAvatarText = (scale: number): TextStyle => ({
+  color: '#D9A8FF',
+  fontSize: 13 * scale,
+  fontWeight: '700',
+});
+
+const commentAuthorRow = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+});
+
+const commentAuthor = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 13.5 * scale,
+  fontWeight: '600',
+});
+
+const commentDate = (scale: number): TextStyle => ({
+  color: NutriColors.textFaint,
+  fontSize: 11.5 * scale,
+});
+
+const commentContent = (scale: number): TextStyle => ({
+  color: '#D7DCEA',
+  fontSize: 13 * scale,
+  lineHeight: 18 * scale,
+  marginTop: 2 * scale,
+});
+
+const noCommentsWrap = (scale: number): ViewStyle => ({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 36 * scale,
+  gap: 8 * scale,
+});
+
+const noCommentsText = (scale: number): TextStyle => ({
+  color: NutriColors.textDim,
+  fontSize: 13.5 * scale,
+});
+
+const addCommentRow = (scale: number): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 10 * scale,
+  marginTop: 14 * scale,
+});
+
+const addCommentInput = (scale: number): TextStyle => ({
+  flex: 1,
+  height: 46 * scale,
+  borderRadius: 14 * scale,
+  backgroundColor: NutriColors.input,
+  borderWidth: 1,
+  borderColor: NutriColors.borderMuted,
+  paddingHorizontal: 14 * scale,
+  color: '#FFFFFF',
+  fontSize: 14 * scale,
+});
+
+const sendCommentBtn = (scale: number, disabled: boolean): ViewStyle => ({
+  height: 46 * scale,
+  paddingHorizontal: 18 * scale,
+  borderRadius: 14 * scale,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: disabled ? 'rgba(255, 255, 255, 0.05)' : NutriColors.purple,
+});
+
+const sendCommentBtnText = (scale: number): TextStyle => ({
+  color: '#FFFFFF',
+  fontSize: 14 * scale,
+  fontWeight: '700',
 });

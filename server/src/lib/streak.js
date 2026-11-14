@@ -84,10 +84,13 @@ export async function buildStreakPayload(user) {
   const current = user.streak?.current || 0;
   const nextMilestone = MILESTONES.find((milestone) => milestone.days > current);
 
+  const claimedSet = new Set((user.claimedMilestones || []).map(Number));
+
   const milestones = MILESTONES.map((milestone) => ({
     ...milestone,
     status:
       current >= milestone.days ? 'completed' : milestone === nextMilestone ? 'in-progress' : 'locked',
+    claimed: claimedSet.has(milestone.days),
   }));
 
   return {

@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { isMongoActive } from '../config/db.js';
+import { createModelProxy, createStoreModel } from '../lib/storage.js';
 
 const ingredientSchema = new mongoose.Schema(
   {
@@ -47,4 +49,20 @@ const recipeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Recipe = mongoose.model('Recipe', recipeSchema);
+const MongooseRecipe = mongoose.model('Recipe', recipeSchema);
+const StoreRecipe = createStoreModel('recipes', {
+  category: 'Recipe',
+  cuisine: 'Indian',
+  dietGoal: 'Balanced',
+  prepTimeMinutes: 20,
+  difficulty: 'Medium',
+  servings: 2,
+  ingredients: [],
+  groceries: [],
+  steps: [],
+  tips: [],
+  nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+  imageUrl: '',
+});
+
+export const Recipe = createModelProxy(MongooseRecipe, StoreRecipe, isMongoActive);

@@ -474,3 +474,70 @@ export function BoltIcon({ size, color = '#FFFFFF' }: IconProps) {
     </Svg>
   );
 }
+
+export function ChevronLeftIcon({ size, color = '#FFFFFF' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <Path
+        d="M12.6 4.2L6.8 10L12.6 15.8"
+        stroke={color}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ChevronRightIcon({ size, color = '#FFFFFF' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <Path
+        d="M7.4 4.2L13.2 10L7.4 15.8"
+        stroke={color}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ScanNavIcon({ size, color = '#FFFFFF' }: IconProps) {
+  const sw = 1.9;
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M8.6 3.4H5.2C4.21 3.4 3.4 4.21 3.4 5.2V8.6"
+        stroke={color}
+        strokeWidth={sw}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M15.4 3.4H18.8C19.79 3.4 20.6 4.21 20.6 5.2V8.6"
+        stroke={color}
+        strokeWidth={sw}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M8.6 20.6H5.2C4.21 20.6 3.4 19.79 3.4 18.8V15.4"
+        stroke={color}
+        strokeWidth={sw}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M15.4 20.6H18.8C19.79 20.6 20.6 19.79 20.6 18.8V15.4"
+        stroke={color}
+        strokeWidth={sw}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M7.6 12H16.4"
+        stroke={color}
+        strokeWidth={sw}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
